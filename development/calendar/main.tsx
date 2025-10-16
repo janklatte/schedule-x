@@ -6,14 +6,10 @@ import '@fontsource/open-sans/500-italic.css'
 import '@fontsource/open-sans/700.css'
 import '@fontsource/open-sans/700-italic.css'
 import '@fontsource/roboto-condensed'
-import {
-  createCalendar,
-} from '@schedule-x/calendar/src'
+import { createCalendar } from '@schedule-x/calendar/src'
 import '../../packages/theme-default/src/calendar.scss'
 import '../app.css'
 import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop/src'
-import { createEventModalPlugin } from '@schedule-x/event-modal/src'
-import { seededEvents } from '../data/seeded-events.ts'
 import { createScrollControllerPlugin } from '@schedule-x/scroll-controller/src'
 import { createResizePlugin } from '../../packages/resize/src'
 import {
@@ -30,35 +26,40 @@ import { mergeLocales } from '@schedule-x/translations/src/utils/merge-locales.t
 import { translations } from '@schedule-x/translations/src'
 import { IANATimezone } from '@schedule-x/shared/src/utils/stateless/time/tzdb.ts'
 import '../../packages/timezone-select/src/timezone-select.scss'
-
-import { dateStringRegex } from '@schedule-x/shared/src'
 import { createCurrentTimePlugin } from '../../packages/current-time/src'
-import { createTimezoneSelectPlugin, translations as timezoneSelectTranslations } from '../../packages/timezone-select/src'
+import {
+  createTimezoneSelectPlugin,
+  translations as timezoneSelectTranslations,
+} from '../../packages/timezone-select/src'
+import { createDragToCreatePlugin } from '../../drag-to-create-plugin'
 
 const calendarElement = document.getElementById('calendar') as HTMLElement
 
 const eventsServicePlugin = createEventsServicePlugin()
 const calendarControlsPlugin = createCalendarControlsPlugin()
 const scrollController = createScrollControllerPlugin({
-  initialScroll: '01:00'
+  initialScroll: '01:00',
+})
+const dragToCreatePlugin = createDragToCreatePlugin({
+  enabled: true,
+  onEventCreate: (event) => {
+    console.log('onEventCreate', event)
+    eventsServicePlugin.add(event)
+  },
 })
 const calendar = createCalendar({
-plugins: [
-  createEventRecurrencePlugin(),
-  eventsServicePlugin,
-  createDragAndDropPlugin(),
-  createEventModalPlugin(),
-  createResizePlugin(),
-  calendarControlsPlugin,
-  scrollController,
-  createCurrentTimePlugin(),
-  createTimezoneSelectPlugin(),
-],
+  plugins: [
+    createEventRecurrencePlugin(),
+    eventsServicePlugin,
+    createDragAndDropPlugin(),
+    createResizePlugin(),
+    calendarControlsPlugin,
+    scrollController,
+    createCurrentTimePlugin(),
+    dragToCreatePlugin,
+  ],
 
-  translations: mergeLocales(
-    translations,
-    timezoneSelectTranslations
-  ),
+  translations: mergeLocales(translations, timezoneSelectTranslations),
 
   showWeekNumbers: true,
   /* dayBoundaries: {
@@ -66,7 +67,13 @@ plugins: [
     end: '06:00'
   }, */
   firstDayOfWeek: 1,
-  views: [createViewMonthGrid(), createViewWeek(), createViewDay(), createViewMonthAgenda(), createViewList()],
+  views: [
+    createViewMonthGrid(),
+    createViewWeek(),
+    createViewDay(),
+    createViewMonthAgenda(),
+    createViewList(),
+  ],
   defaultView: 'week',
   callbacks: {
     onScrollDayIntoView(date) {
@@ -181,22 +188,27 @@ plugins: [
     },
   },
   minDate: Temporal.PlainDate.from('2025-08-13'),
-  maxDate: Temporal.PlainDate.from('2025-09-14'),
+  maxDate: Temporal.PlainDate.from('2025-11-30'),
   dayBoundaries: {
-    start: '06:00',
-    end: '03:00',
+    start: '08:00',
+    end: '19:00',
   },
   weekOptions: {
-    gridStep: 15,
+    gridStep: 30,
   },
   backgroundEvents: [
     {
       title: 'Out of office',
-      start: Temporal.ZonedDateTime.from('2025-08-08T00:00:00.000+02:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-08-09T12:00:00.000+02:00[Europe/Berlin]'),
+      start: Temporal.ZonedDateTime.from(
+        '2025-08-08T00:00:00.000+02:00[Europe/Berlin]'
+      ),
+      end: Temporal.ZonedDateTime.from(
+        '2025-08-09T12:00:00.000+02:00[Europe/Berlin]'
+      ),
       style: {
         // create tilted 5px thick gray lines
-        backgroundImage: 'repeating-linear-gradient(45deg, #ccc, #ccc 5px, transparent 5px, transparent 10px)',
+        backgroundImage:
+          'repeating-linear-gradient(45deg, #ccc, #ccc 5px, transparent 5px, transparent 10px)',
         opacity: 0.5,
       },
       // rrule: 'FREQ=WEEKLY',
@@ -209,7 +221,8 @@ plugins: [
       start: Temporal.PlainDate.from('2025-07-09'),
       end: Temporal.PlainDate.from('2025-07-10'),
       style: {
-        backgroundImage: 'repeating-linear-gradient(45deg, #e3a, #e3a 5px, transparent 5px, transparent 10px)',
+        backgroundImage:
+          'repeating-linear-gradient(45deg, #e3a, #e3a 5px, transparent 5px, transparent 10px)',
         opacity: 0.5,
       },
     },
@@ -217,51 +230,51 @@ plugins: [
   locale: 'en-US',
 
   // tz new york
-  timezone: 'Europe/London',
+  timezone: 'Europe/Berlin',
   events: [
     {
       id: 1,
       title: 'On Min Boundary',
-      start: Temporal.ZonedDateTime.from('2025-08-13T09:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-08-13T10:00[Europe/Berlin]')
+      start: Temporal.ZonedDateTime.from('2025-10-13T09:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-13T10:00[Europe/Berlin]'),
     },
     {
       id: 2,
       title: 'On Max Boundary',
-      start: Temporal.ZonedDateTime.from('2025-09-14T14:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-09-14T15:30[Europe/Berlin]')
+      start: Temporal.ZonedDateTime.from('2025-10-21T14:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-21T15:30[Europe/Berlin]'),
     },
     {
       id: 3,
       title: 'Before Min',
-      start: Temporal.ZonedDateTime.from('2025-08-10T12:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-08-10T13:00[Europe/Berlin]')
+      start: Temporal.ZonedDateTime.from('2025-10-17T12:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-17T13:00[Europe/Berlin]'),
     },
     {
       id: 4,
       title: 'After Max',
-      start: Temporal.ZonedDateTime.from('2025-09-20T08:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-09-20T09:00[Europe/Berlin]')
+      start: Temporal.ZonedDateTime.from('2025-10-20T08:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-20T09:00[Europe/Berlin]'),
     },
     {
       id: 5,
       title: 'Inside Range',
-      start: Temporal.ZonedDateTime.from('2025-09-05T16:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-09-05T17:30[Europe/Berlin]')
-    }
+      start: Temporal.ZonedDateTime.from('2025-10-15T16:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-15T17:30[Europe/Berlin]'),
+    },
     /* ...seededEvents.map(event => ({
       ...event,
       start: dateStringRegex.test(event.start) ? Temporal.PlainDate.from(event.start) : Temporal.ZonedDateTime.from(event.start),
       end: dateStringRegex.test(event.end) ? Temporal.PlainDate.from(event.end) : Temporal.ZonedDateTime.from(event.end),
     })), */
-/*     {
+    /*     {
       id: 1,
       title: 'weekly',
       start: Temporal.PlainDate.from('2025-08-08'),
       end: Temporal.PlainDate.from('2025-08-08'),
       rrule: 'FREQ=WEEKLY;COUNT=10;BYDAY=MO,TU,WE,TH,FR',
     } */
-      /* {
+    /* {
         id: 123,
         title: 'monthly',
         start: Temporal.ZonedDateTime.from('2025-08-11T14:00+02:00[Europe/Berlin]'),
@@ -272,7 +285,9 @@ plugins: [
 calendar.render(calendarElement)
 
 // change timezone via calendarControlsPlugin
-const timezoneSelect = document.getElementById('timezone-select') as HTMLSelectElement
+const timezoneSelect = document.getElementById(
+  'timezone-select'
+) as HTMLSelectElement
 timezoneSelect.addEventListener('change', (e) => {
   const newTimezone = (e.target as HTMLSelectElement).value
   if (newTimezone) {
@@ -281,6 +296,21 @@ timezoneSelect.addEventListener('change', (e) => {
 })
 
 const doStuffButton = document.getElementById('do-stuff') as HTMLButtonElement
-doStuffButton.addEventListener('click', (e) => {
+doStuffButton.addEventListener('click', () => {
   scrollController.scrollTo('05:00')
 })
+
+// Drag-to-create plugin controls
+console.log('🎨 Drag-to-Create Plugin loaded!')
+console.log('Click and drag on empty calendar space to create events')
+console.log('Control the plugin programmatically:')
+console.log('  calendar.dragToCreate.setEnabled(false) - disable the plugin')
+console.log(
+  '  calendar.dragToCreate.setSnapInterval(30) - change snap interval'
+)
+
+// Example: expose to window for easy testing in console
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(window as any).calendar = calendar
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(window as any).dragToCreate = dragToCreatePlugin
