@@ -32,6 +32,7 @@ import {
   translations as timezoneSelectTranslations,
 } from '../../packages/timezone-select/src'
 import { createDragToCreatePlugin } from '../../drag-to-create-plugin'
+import { createView } from '../../customviews'
 
 const calendarElement = document.getElementById('calendar') as HTMLElement
 
@@ -73,8 +74,9 @@ const calendar = createCalendar({
     createViewDay(),
     createViewMonthAgenda(),
     createViewList(),
+    createView(),
   ],
-  defaultView: 'week',
+  defaultView: 'resource-week',
   callbacks: {
     onScrollDayIntoView(date) {
       console.log('onScrollDayIntoView: ', date)
@@ -195,6 +197,7 @@ const calendar = createCalendar({
   },
   weekOptions: {
     gridStep: 30,
+    gridHeight: 700,
   },
   backgroundEvents: [
     {
@@ -227,7 +230,7 @@ const calendar = createCalendar({
       },
     },
   ],
-  locale: 'en-US',
+  locale: 'de-DE',
 
   // tz new york
   timezone: 'Europe/Berlin',
@@ -237,30 +240,56 @@ const calendar = createCalendar({
       title: 'On Min Boundary',
       start: Temporal.ZonedDateTime.from('2025-10-13T09:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-13T10:00[Europe/Berlin]'),
+      people: ['John Doe'],
     },
     {
       id: 2,
       title: 'On Max Boundary',
       start: Temporal.ZonedDateTime.from('2025-10-21T14:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-21T15:30[Europe/Berlin]'),
+      people: ['Jane Doe'],
     },
     {
       id: 3,
       title: 'Before Min',
       start: Temporal.ZonedDateTime.from('2025-10-17T12:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-17T13:00[Europe/Berlin]'),
+      people: ['John Doe'],
     },
     {
       id: 4,
       title: 'After Max',
       start: Temporal.ZonedDateTime.from('2025-10-20T08:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-20T09:00[Europe/Berlin]'),
+      people: ['John Doe'],
     },
     {
       id: 5,
       title: 'Inside Range',
       start: Temporal.ZonedDateTime.from('2025-10-15T16:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-15T17:30[Europe/Berlin]'),
+      people: ['Jane Doe'],
+    },
+    {
+      id: 6,
+      title: 'Inside Range',
+      start: Temporal.ZonedDateTime.from('2025-10-18T16:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-18T17:30[Europe/Berlin]'),
+      people: ['Ralle Rostfrei'],
+    },
+    {
+      id: 7,
+      title: 'Inside Range',
+      start: Temporal.ZonedDateTime.from('2025-10-19T16:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-19T17:30[Europe/Berlin]'),
+      people: ['Ralle Rostfrei'],
+    },
+    {
+      id: 8,
+      title: 'Inside Range',
+      start: Temporal.ZonedDateTime.from('2025-10-20T16:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-20T17:30[Europe/Berlin]'),
+      people: ['Ingo Injektor'],
     },
     /* ...seededEvents.map(event => ({
       ...event,
@@ -297,7 +326,7 @@ timezoneSelect.addEventListener('change', (e) => {
 
 const doStuffButton = document.getElementById('do-stuff') as HTMLButtonElement
 doStuffButton.addEventListener('click', () => {
-  scrollController.scrollTo('05:00')
+  scrollController.scrollTo('09:00')
 })
 
 // Drag-to-create plugin controls

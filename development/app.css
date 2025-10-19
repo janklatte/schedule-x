@@ -70,3 +70,7 @@ body {
   font-weight: 500;
   color: #21005e;
 }
+
+.sx__week-header-border {
+  border-left: 150px solid transparent;
+}
