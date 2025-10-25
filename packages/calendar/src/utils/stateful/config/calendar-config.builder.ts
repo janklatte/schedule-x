@@ -62,6 +62,7 @@ export default class CalendarConfigBuilder
   translations: Record<string, Language> | undefined
 
   showWeekNumbers: boolean | undefined
+  resources: Map<string, string> = new Map()
 
   build(): CalendarConfigInternal {
     const minDate = this.minDate
@@ -91,7 +92,8 @@ export default class CalendarConfigBuilder
       this.theme,
       this.translations,
       this.showWeekNumbers,
-      this.timezone as IANATimezone
+      this.timezone as IANATimezone,
+      this.resources
     )
   }
 
@@ -225,6 +227,16 @@ export default class CalendarConfigBuilder
 
   withTimezone(timezone: string | undefined) {
     this.timezone = timezone
+    return this
+  }
+
+  withResources(resources: Map<string, string> | undefined) {
+    if (!resources) return this
+
+    for (const [key, value] of resources.entries()) {
+      this.resources.set(key, value)
+    }
+
     return this
   }
 }

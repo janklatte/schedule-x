@@ -24,6 +24,7 @@ const updateNonRecurringEvent = (
 
   eventToUpdate.start = eventCopy.start
   eventToUpdate.end = eventCopy.end
+  eventToUpdate.resourceId = eventCopy.resourceId
   $app.calendarEvents.list.value = [...$app.calendarEvents.list.value]
 }
 

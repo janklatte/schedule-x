@@ -1,1 +1,1 @@
-export { createView } from './create-view'
+export { createResourceWeekView as createView } from './create-view'

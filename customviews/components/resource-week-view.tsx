@@ -7,10 +7,7 @@ import TimeGridDay from '@schedule-x/calendar/src/components/week-grid/time-grid
 import { sortEventsForWeekView } from '@schedule-x/calendar/src/utils/stateless/events/sort-events-for-week'
 import { positionInTimeGrid } from '@schedule-x/calendar/src/utils/stateless/events/position-in-time-grid'
 import { toIntegers } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/format-conversion'
-import { getDayNameShort } from '@schedule-x/shared/src/utils/stateless/time/date-time-localization/date-time-localization'
-import { isToday } from '@schedule-x/shared/src/utils/stateless/time/comparison'
-import { getClassNameForWeekday } from '@schedule-x/calendar/src/utils/stateless/get-class-name-for-weekday'
-import { toDateString } from '@schedule-x/shared/src'
+import ResourceWeekDayHeader from './resource-week-day-header'
 import { useRef, useEffect } from 'preact/hooks'
 
 export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
@@ -62,9 +59,14 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
 
     // Get unique people from events
     const calendarEvents = $app.calendarEvents.list.value
-    const uniquePeople = [
-      ...new Set(calendarEvents.flatMap((event) => event.people || [])),
-    ].filter(Boolean)
+    const uniquePeople = Array.from($app.config.resources?.value).map(
+      ([key, value]) => {
+        return {
+          id: key,
+          name: value,
+        }
+      }
+    )
 
     // Create base week structure
     const week = createWeek($app)
@@ -79,19 +81,10 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
     // Position events in the time grid - same as week view
     const weekWithEvents = positionInTimeGrid(timeGridEvents, week, $app)
 
+    console.log('people', uniquePeople)
+
     return { people: uniquePeople, week: weekWithEvents }
   })
-
-  const getClassNames = (date: Temporal.ZonedDateTime) => {
-    const classNames = [
-      'sx__week-grid__date',
-      getClassNameForWeekday(date.dayOfWeek),
-    ]
-    if (isToday(date, $app.config.timezone.value)) {
-      classNames.push('sx__week-grid__date--is-today')
-    }
-    return classNames.join(' ')
-  }
 
   const { people, week } = resourceWeekData.value
   const weekDays = Object.values(week)
@@ -134,87 +127,14 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                       })
 
                       return (
-                        <div
-                          className="sx__resource-week-day-group"
-                          key={day.date}
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            minWidth: `${MIN_RESOURCE_COLUMN_WIDTH * (people.length || 1)}px`,
-                            flex: 1,
-                          }}
-                        >
-                          {/* Day header - merged across all resource columns */}
-                          <div
-                            className={getClassNames(date)}
-                            data-date={toDateString(date)}
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              borderBottom: 'var(--sx-border)',
-                              padding: '8px 0',
-                              borderLeft:
-                                idx > 0
-                                  ? '1px dashed var(--sx-color-outline-variant)'
-                                  : 'none',
-                              borderImage:
-                                'linear-gradient(to top, var(--sx-color-outline-variant), rgba(0, 0, 0, 0)) 1 100%',
-                            }}
-                            data-index={idx}
-                          >
-                            <div className="sx__week-grid__day-name">
-                              {getDayNameShort(date, $app.config.locale.value)}
-                            </div>
-                            <div className="sx__week-grid__date-number">
-                              {date.day}
-                            </div>
-                          </div>
-
-                          {/* Resource names row below the day */}
-                          <div
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: `repeat(${people.length || 1}, 1fr)`,
-                              width: '100%',
-                            }}
-                          >
-                            {people.length > 0 ? (
-                              people.map((person, personIdx) => (
-                                <div
-                                  key={`${day.date}-${person}`}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '8px 4px',
-                                    fontSize: 'var(--sx-font-small)',
-                                    fontWeight: 600,
-                                    color: 'var(--sx-color-neutral)',
-                                    borderLeft:
-                                      '1px solid var(--sx-color-outline-variant)',
-                                    borderImage:
-                                      (personIdx == 0 && idx == 0) ||
-                                      personIdx != 0
-                                        ? 'linear-gradient(to top, var(--sx-color-outline-variant), rgba(0, 0, 0, 0)) 1 100%'
-                                        : 'none',
-                                  }}
-                                >
-                                  {person}
-                                </div>
-                              ))
-                            ) : (
-                              <div
-                                style={{
-                                  padding: '8px 4px',
-                                  textAlign: 'center',
-                                }}
-                              >
-                                {/* Empty placeholder when no people */}
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        <ResourceWeekDayHeader
+                          appConfig={$app.config}
+                          day={day}
+                          people={people.map((person) => person.name)}
+                          date={date}
+                          idx={idx}
+                          minResourceColumnWidth={MIN_RESOURCE_COLUMN_WIDTH}
+                        />
                       )
                     })}
                   </div>
@@ -267,7 +187,7 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                         people.map((person) => {
                           // Filter events for this person
                           const personEvents = day.timeGridEvents.filter(
-                            (event) => event.people?.includes(person)
+                            (event) => event.resourceId?.includes(person.id)
                           )
 
                           return (
@@ -276,6 +196,7 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                               calendarEvents={personEvents}
                               backgroundEvents={day.backgroundEvents}
                               date={zonedDateTime}
+                              resourceName={person.name}
                             />
                           )
                         })

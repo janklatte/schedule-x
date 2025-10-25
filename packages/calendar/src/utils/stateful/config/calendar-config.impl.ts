@@ -35,6 +35,7 @@ export default class CalendarConfigImpl implements CalendarConfigInternal {
   showWeekNumbers: Signal<boolean> = signal(false)
   direction: 'ltr' | 'rtl' = 'ltr'
   timezone: Signal<IANATimezone>
+  resources: Signal<Map<string, string>>
   _destroyCustomComponentInstance: ((ccid: string) => void) | undefined
 
   constructor(
@@ -58,7 +59,8 @@ export default class CalendarConfigImpl implements CalendarConfigInternal {
     theme: string | undefined = undefined,
     translations: Record<string, Language> = {},
     showWeekNumbers: boolean = false,
-    timezone: IANATimezone = 'UTC'
+    timezone: IANATimezone = 'UTC',
+    resources: Map<string, string> = new Map()
   ) {
     this.locale = signal(locale)
     this.firstDayOfWeek = signal(firstDayOfWeek)
@@ -75,6 +77,7 @@ export default class CalendarConfigImpl implements CalendarConfigInternal {
     this.showWeekNumbers = signal(showWeekNumbers)
     this.direction = getDirection()
     this.timezone = signal(timezone)
+    this.resources = signal(resources)
   }
 
   get isHybridDay(): boolean {

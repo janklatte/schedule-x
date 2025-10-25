@@ -2,7 +2,7 @@ import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calenda
 import { DATE_GRID_BLOCKER } from '../constants'
 import { BackgroundEvent } from '@schedule-x/shared/src/interfaces/calendar/background-event'
 
-type WeekDay = {
+export type WeekDay = {
   date: string
   timeGridEvents: CalendarEventInternal[]
   dateGridEvents: {

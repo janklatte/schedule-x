@@ -81,6 +81,7 @@ export default interface CalendarConfigInternal extends Config {
   _destroyCustomComponentInstance: ((ccid: string) => void) | undefined
   translations: Signal<Record<string, Language>>
   direction: 'ltr' | 'rtl'
+  resources: Signal<Map<string, string>>
 
   // Getters
   isHybridDay: boolean
@@ -111,6 +112,7 @@ interface ReducedCalendarConfigInternal
     | 'showWeekNumbers'
     | 'direction'
     | 'timezone'
+    | 'resources'
   > {}
 
 export interface CalendarConfigExternal
@@ -134,4 +136,5 @@ export interface CalendarConfigExternal
   translations?: Record<string, Language>
   showWeekNumbers?: boolean
   timezone?: IANATimezone
+  resources?: Map<string, string>
 }

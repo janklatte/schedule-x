@@ -29,6 +29,7 @@ export default class CalendarEventImpl implements CalendarEventInternal {
     private _end: Temporal.ZonedDateTime | Temporal.PlainDate,
     public title?: string,
     public people?: string[],
+    public resourceId?: string,
     public location?: string,
     public description?: string,
     public calendarId?: string,
@@ -182,6 +183,7 @@ export default class CalendarEventImpl implements CalendarEventInternal {
       description: this.description,
       calendarId: this.calendarId,
       _options: this._options,
+      resourceId: this.resourceId,
       ...this._getForeignProperties(),
     }
   }

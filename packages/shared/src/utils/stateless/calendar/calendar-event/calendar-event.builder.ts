@@ -15,6 +15,7 @@ export default class CalendarEventBuilder
   private description: string | undefined
   private title: string | undefined
   private calendarId: string | undefined
+  private resourceId: string | undefined
   private _foreignProperties: Record<string, unknown> = {}
   private _options: CalendarEventOptions | undefined = undefined
   private _customContent: CalendarEventInternal['_customContent'] = {}
@@ -34,6 +35,7 @@ export default class CalendarEventBuilder
       this.end,
       this.title,
       this.people,
+      this.resourceId,
       this.location,
       this.description,
       this.calendarId,
@@ -84,6 +86,11 @@ export default class CalendarEventBuilder
     customContent: CalendarEventInternal['_customContent']
   ): CalendarEventBuilder {
     this._customContent = customContent
+    return this
+  }
+
+  withResourceId(resourceId: string | undefined): CalendarEventBuilder {
+    this.resourceId = resourceId
     return this
   }
 }

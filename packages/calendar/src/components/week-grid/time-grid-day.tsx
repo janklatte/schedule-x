@@ -21,12 +21,14 @@ type props = {
   calendarEvents: CalendarEventInternal[]
   backgroundEvents: BackgroundEvent[]
   date: Temporal.ZonedDateTime
+  resourceName?: string
 }
 
 export default function TimeGridDay({
   calendarEvents,
   date,
   backgroundEvents,
+  resourceName,
 }: props) {
   /**
    * The time grid day needs to keep track of whether the mousedown event happened on a calendar event, in order to prevent
@@ -105,6 +107,8 @@ export default function TimeGridDay({
     const newClassNames = [...baseClasses]
     if (isSameDay($app.datePickerState.selectedDate.value, date))
       newClassNames.push('is-selected')
+    if (resourceName)
+      newClassNames.push(`resource-${resourceName.trim().replace(/\s+/g, '-')}`)
     return newClassNames
   })
 

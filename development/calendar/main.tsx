@@ -27,12 +27,9 @@ import { translations } from '@schedule-x/translations/src'
 import { IANATimezone } from '@schedule-x/shared/src/utils/stateless/time/tzdb.ts'
 import '../../packages/timezone-select/src/timezone-select.scss'
 import { createCurrentTimePlugin } from '../../packages/current-time/src'
-import {
-  createTimezoneSelectPlugin,
-  translations as timezoneSelectTranslations,
-} from '../../packages/timezone-select/src'
+import { translations as timezoneSelectTranslations } from '../../packages/timezone-select/src'
 import { createDragToCreatePlugin } from '../../drag-to-create-plugin'
-import { createView } from '../../customviews'
+import { createViewResourceWeek } from '../../customviews/create-view'
 
 const calendarElement = document.getElementById('calendar') as HTMLElement
 
@@ -74,7 +71,7 @@ const calendar = createCalendar({
     createViewDay(),
     createViewMonthAgenda(),
     createViewList(),
-    createView(),
+    createViewResourceWeek(),
   ],
   defaultView: 'resource-week',
   callbacks: {
@@ -234,41 +231,47 @@ const calendar = createCalendar({
 
   // tz new york
   timezone: 'Europe/Berlin',
+  resources: new Map([
+    ['asdf-1234', 'Jimmy Doe'],
+    ['asdf-4321', 'Jane Smith'],
+    ['fdsa-4321', 'Ralle Rostfrei'],
+    ['fdsa-1234', 'Ingo Injektor'],
+  ]),
   events: [
     {
       id: 1,
       title: 'On Min Boundary',
-      start: Temporal.ZonedDateTime.from('2025-10-13T09:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-13T10:00[Europe/Berlin]'),
-      people: ['John Doe'],
+      start: Temporal.ZonedDateTime.from('2025-10-24T09:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-24T10:00[Europe/Berlin]'),
+      resourceId: 'asdf-1234',
     },
     {
       id: 2,
       title: 'On Max Boundary',
       start: Temporal.ZonedDateTime.from('2025-10-21T14:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-21T15:30[Europe/Berlin]'),
-      people: ['Jane Doe'],
+      resourceId: 'asdf-4321',
     },
     {
       id: 3,
       title: 'Before Min',
-      start: Temporal.ZonedDateTime.from('2025-10-17T12:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-17T13:00[Europe/Berlin]'),
-      people: ['John Doe'],
+      start: Temporal.ZonedDateTime.from('2025-10-23T12:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-23T13:00[Europe/Berlin]'),
+      resourceId: 'asdf-1234',
     },
     {
       id: 4,
       title: 'After Max',
       start: Temporal.ZonedDateTime.from('2025-10-20T08:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-20T09:00[Europe/Berlin]'),
-      people: ['John Doe'],
+      resourceId: 'asdf-1234',
     },
     {
       id: 5,
       title: 'Inside Range',
-      start: Temporal.ZonedDateTime.from('2025-10-15T16:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-15T17:30[Europe/Berlin]'),
-      people: ['Jane Doe'],
+      start: Temporal.ZonedDateTime.from('2025-10-25T16:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-25T17:30[Europe/Berlin]'),
+      resourceId: 'asdf-4321',
     },
     {
       id: 6,
@@ -276,20 +279,21 @@ const calendar = createCalendar({
       start: Temporal.ZonedDateTime.from('2025-10-18T16:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-18T17:30[Europe/Berlin]'),
       people: ['Ralle Rostfrei'],
+      resourceId: 'fdsa-4321',
     },
     {
       id: 7,
       title: 'Inside Range',
       start: Temporal.ZonedDateTime.from('2025-10-19T16:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-19T17:30[Europe/Berlin]'),
-      people: ['Ralle Rostfrei'],
+      resourceId: 'fdsa-4321',
     },
     {
       id: 8,
       title: 'Inside Range',
       start: Temporal.ZonedDateTime.from('2025-10-20T16:00[Europe/Berlin]'),
       end: Temporal.ZonedDateTime.from('2025-10-20T17:30[Europe/Berlin]'),
-      people: ['Ingo Injektor'],
+      resourceId: 'fdsa-1234',
     },
     /* ...seededEvents.map(event => ({
       ...event,

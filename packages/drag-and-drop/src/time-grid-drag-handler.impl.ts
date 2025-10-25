@@ -18,9 +18,12 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
   private readonly startY: number
   private readonly startX
   private lastIntervalDiff = 0
+  private lastDaySlotsDiff = 0
   private lastDaysDiff = 0
   private readonly originalStart: Temporal.ZonedDateTime
   private readonly originalEnd: Temporal.ZonedDateTime
+  private readonly resourceIdToDaySlotIdx: Map<string, number> = new Map()
+  private readonly daySlotIdxToResourceId: Map<number, string> = new Map()
 
   constructor(
     private $app: CalendarAppSingleton,
@@ -43,7 +46,23 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
     this.originalEnd = Temporal.ZonedDateTime.from(
       this.eventCopy.end.toString()
     )
+
+    const ressourceWeekView = $app.elements.calendarWrapper?.querySelector(
+      '.sx__resource-week-date-axis'
+    ) as HTMLElement
+    if (ressourceWeekView) {
+      Array.from($app.config.resources.value).forEach(([key], index) => {
+        this.resourceIdToDaySlotIdx.set(key, index)
+        this.daySlotIdxToResourceId.set(index, key)
+      })
+    }
+
     this.init()
+  }
+
+  private getDaySlotIdx(resourceId: string | undefined): number {
+    if (!resourceId) return 0
+    return this.resourceIdToDaySlotIdx.get(resourceId) || 0
   }
 
   private init() {
@@ -64,10 +83,10 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
       timePointsDiffY / this.CHANGE_THRESHOLD_IN_TIME_POINTS
     )
     const pixelDiffX = clientX - this.startX
-    const currentDaysDiff = Math.round(pixelDiffX / this.dayWidth)
+    const currentDaySlotsDiff = Math.round(pixelDiffX / this.dayWidth)
 
     this.handleVerticalMouseOrTouchMove(currentIntervalDiff)
-    this.handleHorizontalMouseOrTouchMove(currentDaysDiff)
+    this.handleHorizontalMouseOrTouchMove(currentDaySlotsDiff)
   }
 
   private timePointsPerPixel(): number {
@@ -96,11 +115,16 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
       this.eventCopy.end as Temporal.ZonedDateTime,
       pointsToAdd
     )
+    const stringNewStart = newStart.toString()
+    const stringNewEnd = newEnd.toString()
+    const stringDayBoundariesStart = this.dayBoundariesDateTime.start.toString()
+    const stringDayBoundariesEnd = this.dayBoundariesDateTime.end.toString()
+    console.log('stringNewStart', stringNewStart)
+    console.log('stringNewEnd', stringNewEnd)
+    console.log('stringDayBoundariesStart', stringDayBoundariesStart)
+    console.log('stringDayBoundariesEnd', stringDayBoundariesEnd)
     let currentDiff = this.lastDaysDiff
-
-    if (this.$app.config.direction === 'rtl') {
-      currentDiff = -currentDiff
-    }
+    if (this.$app.config.direction === 'rtl') currentDiff = -currentDiff
 
     if (
       newStart.epochNanoseconds <
@@ -128,19 +152,42 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
     this.updateCopy(this.eventCopy)
   }
 
-  private handleHorizontalMouseOrTouchMove(totalDaysDiff: number) {
-    if (totalDaysDiff === this.lastDaysDiff) return
+  private mod(n: number, m: number): number {
+    // https://web.archive.org/web/20090717035140if_/javascript.about.com/od/problemsolving/a/modulobug.htm
+    return ((n % m) + m) % m
+  }
 
-    let diffToAdd = totalDaysDiff - this.lastDaysDiff
+  private handleHorizontalMouseOrTouchMove(totalDaySlotsDiff: number) {
+    if (totalDaySlotsDiff === this.lastDaySlotsDiff) return
+
+    let diffToAdd = totalDaySlotsDiff - this.lastDaySlotsDiff
     if (this.$app.config.direction === 'rtl') diffToAdd = -diffToAdd
+
+    let daysToAdd = diffToAdd
+    let newResourceId: string | undefined = undefined
+
+    if (this.eventCopy.resourceId && this.resourceIdToDaySlotIdx.size > 0) {
+      const numberOfResources = this.resourceIdToDaySlotIdx.size
+
+      const startDaySlotIdx = this.getDaySlotIdx(this.eventCopy.resourceId)
+      const newDaySlotIdx = this.mod(
+        startDaySlotIdx + diffToAdd,
+        numberOfResources
+      )
+
+      const slotDiff = newDaySlotIdx - startDaySlotIdx
+
+      daysToAdd = Math.floor((diffToAdd - slotDiff) / numberOfResources)
+      newResourceId = this.daySlotIdxToResourceId.get(newDaySlotIdx)
+    }
 
     const newStartDate = addDays(
       this.eventCopy.start,
-      diffToAdd
+      daysToAdd
     ) as Temporal.ZonedDateTime
     const newEndDate = addDays(
       this.eventCopy.end,
-      diffToAdd
+      daysToAdd
     ) as Temporal.ZonedDateTime
     const newStart = setDateInDateTime(
       this.eventCopy.start as Temporal.ZonedDateTime,
@@ -162,15 +209,20 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
     )
       return
 
-    this.setDateForEventCopy(newStart, newEnd)
-    this.transformEventCopyPosition(totalDaysDiff)
-    this.lastDaysDiff = totalDaysDiff
+    this.setDateAndResourceIdForEventCopy(newStart, newEnd, newResourceId)
+    this.transformEventCopyPosition(totalDaySlotsDiff)
+    this.lastDaySlotsDiff = totalDaySlotsDiff
+    this.lastDaysDiff = this.lastDaysDiff + daysToAdd
   }
 
-  private setDateForEventCopy(
+  private setDateAndResourceIdForEventCopy(
     newStart: Temporal.ZonedDateTime,
-    newEnd: Temporal.ZonedDateTime
+    newEnd: Temporal.ZonedDateTime,
+    newResourceId: string | undefined
   ) {
+    if (newResourceId) {
+      this.eventCopy.resourceId = newResourceId
+    }
     this.eventCopy.start = newStart
     this.eventCopy.end = newEnd
     this.updateCopy(this.eventCopy)
@@ -207,9 +259,9 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
   }
 
   private updateOriginalEvent() {
-    if (this.lastIntervalDiff === 0 && this.lastDaysDiff === 0) return
+    if (this.lastIntervalDiff === 0 && this.lastDaySlotsDiff === 0) return
 
-    const dayIsSame = this.lastDaysDiff === 0
+    const dayIsSame = this.lastDaySlotsDiff === 0
     const eventElement = document.querySelector(
       `[data-event-id="${this.eventCopy.id}"]`
     )
