@@ -4,6 +4,7 @@ import DragToCreatePlugin from './drag-to-create-plugin.interface'
 import { randomStringId } from '@schedule-x/shared/src/utils/stateless/strings/random'
 import { addTimePointsToDateTime } from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
 import CalendarEventExternal from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
+import { getEventCoordinates } from '@schedule-x/shared/src/utils/stateless/dom/get-event-coordinates'
 
 /**
  * Handles the drag-to-create interaction logic
@@ -17,11 +18,15 @@ export default class DragToCreateHandler {
   private dragEndPercentageOfDay: number | null = null
   private previewElement: HTMLElement | null = null
   private dragStartElement: HTMLElement | null = null
+  private dragStartResourceId: string | undefined = undefined
+  private eventWidth: number = 100
 
   constructor(
     private $app: CalendarAppSingleton,
     private plugin: DragToCreatePlugin
-  ) {}
+  ) {
+    this.eventWidth = $app.config.weekOptions.value.eventWidth
+  }
 
   initialize(): void {
     // We'll attach listeners to the calendar wrapper
@@ -55,10 +60,7 @@ export default class DragToCreateHandler {
     }
   }
 
-  /**
-   * Handle mouse down event - start tracking potential drag
-   */
-  private handleMouseDown = (e: MouseEvent): void => {
+  private handleMouseDown = (e: UIEvent): void => {
     if (!this.enabled) return
 
     const target = e.target as HTMLElement
@@ -81,6 +83,7 @@ export default class DragToCreateHandler {
     this.dragStartPercentageOfDay = result.percentageOfDay
     this.dragEndTime = result.dateTime
     this.dragEndPercentageOfDay = result.percentageOfDay
+    this.dragStartResourceId = target.dataset.resourceId
     this.isDragging = true
 
     // Prevent text selection during drag
@@ -90,13 +93,11 @@ export default class DragToCreateHandler {
   /**
    * Handle mouse move event - update drag preview
    */
-  private handleMouseMove = (e: MouseEvent): void => {
+  private handleMouseMove = (e: UIEvent): void => {
     if (!this.isDragging || !this.dragStartTime) return
 
-    const target = document.elementFromPoint(
-      e.clientX,
-      e.clientY
-    ) as HTMLElement
+    const { clientX, clientY } = getEventCoordinates(e)
+    const target = document.elementFromPoint(clientX, clientY) as HTMLElement
     if (!target) return
 
     const result = this.getDateTimeFromElement(target, e)
@@ -110,7 +111,7 @@ export default class DragToCreateHandler {
   /**
    * Handle mouse up event - create the event
    */
-  private handleMouseUp = (e: MouseEvent): void => {
+  private handleMouseUp = (e: UIEvent): void => {
     if (!this.isDragging) return
 
     e.preventDefault()
@@ -127,7 +128,7 @@ export default class DragToCreateHandler {
    */
   private getDateTimeFromElement(
     element: HTMLElement,
-    e: MouseEvent
+    e: UIEvent
   ): { dateTime: Temporal.ZonedDateTime; percentageOfDay: number } | null {
     // For time grid days
     const timeGridDay = element.closest('.sx__time-grid-day') as HTMLElement
@@ -143,13 +144,14 @@ export default class DragToCreateHandler {
    */
   private getTimeFromTimeGrid(
     element: HTMLElement,
-    e: MouseEvent
+    e: UIEvent
   ): { dateTime: Temporal.ZonedDateTime; percentageOfDay: number } | null {
     const dateStr = element.dataset.timeGridDate
     if (!dateStr) return null
 
     const rect = element.getBoundingClientRect()
-    const relativeY = e.clientY - rect.top
+    const { clientY } = getEventCoordinates(e)
+    const relativeY = clientY - rect.top
     const percentageOfDay = Math.max(0, Math.min(1, relativeY / rect.height))
 
     const dayStartTimePoint = this.$app.config.dayBoundaries.value.start
@@ -240,6 +242,7 @@ export default class DragToCreateHandler {
     this.previewElement.style.height = `${height}%`
     this.previewElement.style.left = '0'
     this.previewElement.style.right = '0'
+    this.previewElement.style.width = `${this.eventWidth}%`
   }
 
   /**
@@ -267,6 +270,7 @@ export default class DragToCreateHandler {
       start: startTime,
       end: endTime,
       title: 'New Event',
+      resourceId: this.dragStartResourceId,
     }
 
     this.plugin.getOnEventCreateCallback()(newEvent)

@@ -14,10 +14,10 @@ export type PreactViewComponent = ReturnType<
 export const createViewResourceWeek: ViewFactory = () =>
   createPreactView({
     name: 'resource-week',
-    label: 'Resource Week',
+    label: 'ResourceWeek',
     Component: ResourceWeekWrapper,
     hasWideScreenCompat: true,
-    hasSmallScreenCompat: true,
+    hasSmallScreenCompat: false,
     backwardForwardFn: addDays,
     backwardForwardUnits: 7,
     setDateRange: setRangeForWeek,

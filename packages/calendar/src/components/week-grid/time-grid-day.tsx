@@ -21,14 +21,14 @@ type props = {
   calendarEvents: CalendarEventInternal[]
   backgroundEvents: BackgroundEvent[]
   date: Temporal.ZonedDateTime
-  resourceName?: string
+  resourceId?: string
 }
 
 export default function TimeGridDay({
   calendarEvents,
   date,
   backgroundEvents,
-  resourceName,
+  resourceId,
 }: props) {
   /**
    * The time grid day needs to keep track of whether the mousedown event happened on a calendar event, in order to prevent
@@ -107,8 +107,6 @@ export default function TimeGridDay({
     const newClassNames = [...baseClasses]
     if (isSameDay($app.datePickerState.selectedDate.value, date))
       newClassNames.push('is-selected')
-    if (resourceName)
-      newClassNames.push(`resource-${resourceName.trim().replace(/\s+/g, '-')}`)
     return newClassNames
   })
 
@@ -116,6 +114,7 @@ export default function TimeGridDay({
     <div
       className={classNames.value.join(' ')}
       data-time-grid-date={toDateString(date)}
+      data-resource-id={resourceId}
       onClick={(e) => handleOnClick(e, $app.config.callbacks.onClickDateTime)}
       onDblClick={(e) =>
         handleOnClick(e, $app.config.callbacks.onDoubleClickDateTime)

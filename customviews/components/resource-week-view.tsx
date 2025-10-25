@@ -153,7 +153,7 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
               ref={gridScrollRef}
               style={{
                 overflowX: 'auto',
-                overflowY: 'auto',
+                overflowY: 'hidden',
               }}
             >
               <div
@@ -196,7 +196,7 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                               calendarEvents={personEvents}
                               backgroundEvents={day.backgroundEvents}
                               date={zonedDateTime}
-                              resourceName={person.name}
+                              resourceId={person.id}
                             />
                           )
                         })

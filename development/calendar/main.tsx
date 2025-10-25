@@ -195,6 +195,7 @@ const calendar = createCalendar({
   weekOptions: {
     gridStep: 30,
     gridHeight: 700,
+    eventWidth: 95,
   },
   backgroundEvents: [
     {
