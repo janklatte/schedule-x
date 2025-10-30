@@ -17,7 +17,10 @@ const createOneDay = (week: Week, date: Temporal.ZonedDateTime) => {
 }
 
 export const createWeek = ($app: CalendarAppSingleton) => {
-  if ($app.calendarState.view.value === InternalViewName.Day)
+  if (
+    $app.calendarState.view.value === InternalViewName.Day ||
+    $app.calendarState.view.value === InternalViewName.ResourceDay
+  )
     return createOneDay({}, ($app.calendarState.range.value as DateRange).start)
 
   // Week mode

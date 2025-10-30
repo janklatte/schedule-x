@@ -8,13 +8,15 @@ import { sortEventsForWeekView } from '@schedule-x/calendar/src/utils/stateless/
 import { positionInTimeGrid } from '@schedule-x/calendar/src/utils/stateless/events/position-in-time-grid'
 import { toIntegers } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/format-conversion'
 import ResourceWeekDayHeader from './resource-week-day-header'
-import { useRef, useEffect } from 'preact/hooks'
+import { useRef, useEffect, useCallback } from 'preact/hooks'
+import { signal } from '@preact/signals'
 
 export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
   // Set grid height
+  const sliderHeight = 12
   document.documentElement.style.setProperty(
     '--sx-week-grid-height',
-    `${$app.config.weekOptions.value.gridHeight}px`
+    `${$app.config.weekOptions.value.gridHeight + sliderHeight}px`
   )
 
   // Minimum width for each resource column (in pixels)
@@ -23,6 +25,34 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
   // Refs for scroll synchronization
   const headerScrollRef = useRef<HTMLDivElement>(null)
   const gridScrollRef = useRef<HTMLDivElement>(null)
+  const headerScrollLeft = signal<number>(0)
+  const headerOffsetWidth = signal<number>(
+    headerScrollRef.current?.offsetWidth || 0
+  )
+
+  const scrollToToday = useCallback(() => {
+    const day = $app.datePickerState.selectedDate.value
+    const dayElement = headerScrollRef.current?.querySelector(
+      `.sx__week-grid__date[data-date="${day}"]`
+    )
+
+    if (dayElement && gridScrollRef.current && headerScrollRef.current) {
+      const left =
+        dayElement.getBoundingClientRect().left -
+        headerScrollRef.current.getBoundingClientRect().left +
+        headerScrollRef.current.scrollLeft
+      gridScrollRef.current.scrollTo({ top: 0, left: left, behavior: 'auto' })
+      headerScrollRef.current.scrollTo({
+        top: 0,
+        left: left,
+        behavior: 'auto',
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    headerOffsetWidth.value = headerScrollRef.current?.offsetWidth || 0
+  }, [])
 
   // Synchronize scroll between header and grid
   useEffect(() => {
@@ -34,12 +64,16 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
     const syncHeaderToGrid = () => {
       if (headerEl && gridEl) {
         headerEl.scrollLeft = gridEl.scrollLeft
+        headerScrollLeft.value = headerEl.scrollLeft
+        headerOffsetWidth.value = headerEl.offsetWidth
       }
     }
 
     const syncGridToHeader = () => {
       if (headerEl && gridEl) {
         gridEl.scrollLeft = headerEl.scrollLeft
+        headerScrollLeft.value = headerEl.scrollLeft
+        headerOffsetWidth.value = headerEl.offsetWidth
       }
     }
 
@@ -51,6 +85,10 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
       headerEl.removeEventListener('scroll', syncGridToHeader)
     }
   }, [])
+
+  useEffect(() => {
+    scrollToToday()
+  }, [$app.datePickerState.selectedDate.value])
 
   const resourceWeekData = useComputed(() => {
     const rangeStart = $app.calendarState.range.value?.start
@@ -81,8 +119,6 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
     // Position events in the time grid - same as week view
     const weekWithEvents = positionInTimeGrid(timeGridEvents, week, $app)
 
-    console.log('people', uniquePeople)
-
     return { people: uniquePeople, week: weekWithEvents }
   })
 
@@ -90,8 +126,8 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
   const weekDays = Object.values(week)
 
   return (
-    <AppContext.Provider value={$app}>
-      <>
+    <>
+      <AppContext.Provider value={$app}>
         <style>{`
           .sx__resource-week-date-axis::-webkit-scrollbar {
             display: none;
@@ -109,9 +145,11 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                     overflowY: 'hidden',
                     scrollbarWidth: 'none', // Firefox
                     msOverflowStyle: 'none', // IE/Edge
+                    width: '100%',
                   }}
                 >
                   <div
+                    className="sx__resource-week-day-header-container"
                     style={{
                       display: 'flex',
                       minWidth: '100%',
@@ -134,6 +172,8 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                           date={date}
                           idx={idx}
                           minResourceColumnWidth={MIN_RESOURCE_COLUMN_WIDTH}
+                          headerScrollLeft={headerScrollLeft}
+                          headerOffsetWidth={headerOffsetWidth}
                         />
                       )
                     })}
@@ -147,22 +187,23 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
           {/* Time grid with resource columns */}
 
           <div className="sx__week-grid">
-            <TimeAxis />
-
             <div
               ref={gridScrollRef}
               style={{
                 overflowX: 'auto',
                 overflowY: 'hidden',
+                width: '100%',
               }}
             >
               <div
                 style={{
                   display: 'flex',
                   minWidth: '100%',
+                  width: '100%',
                   height: '100%',
                 }}
               >
+                <TimeAxis />
                 {weekDays.map((day) => {
                   const { year, month, date } = toIntegers(day.date)
                   const zonedDateTime = Temporal.ZonedDateTime.from({
@@ -174,17 +215,18 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
 
                   return (
                     <div
-                      key={day.date}
+                      key={day.date + '-resource-day-columns'}
                       className="sx__resource-day-columns"
                       style={{
                         display: 'grid',
                         gridTemplateColumns: `repeat(${people.length || 1}, minmax(${MIN_RESOURCE_COLUMN_WIDTH}px, 1fr))`,
                         minWidth: `${MIN_RESOURCE_COLUMN_WIDTH * (people.length || 1)}px`,
                         flex: 1,
+                        width: '100%',
                       }}
                     >
                       {people.length > 0 ? (
-                        people.map((person) => {
+                        people.map((person, person_idx) => {
                           // Filter events for this person
                           const personEvents = day.timeGridEvents.filter(
                             (event) => event.resourceId?.includes(person.id)
@@ -192,11 +234,12 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
 
                           return (
                             <TimeGridDay
-                              key={`${day.date}-${person}`}
+                              key={`${day.date}-${person.id}`}
                               calendarEvents={personEvents}
                               backgroundEvents={day.backgroundEvents}
                               date={zonedDateTime}
                               resourceId={person.id}
+                              isFirstResourceGrid={person_idx == 0}
                             />
                           )
                         })
@@ -214,7 +257,7 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
             </div>
           </div>
         </div>
-      </>
-    </AppContext.Provider>
+      </AppContext.Provider>
+    </>
   )
 }

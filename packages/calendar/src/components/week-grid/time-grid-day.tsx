@@ -22,6 +22,7 @@ type props = {
   backgroundEvents: BackgroundEvent[]
   date: Temporal.ZonedDateTime
   resourceId?: string
+  isFirstResourceGrid?: boolean
 }
 
 export default function TimeGridDay({
@@ -29,6 +30,7 @@ export default function TimeGridDay({
   date,
   backgroundEvents,
   resourceId,
+  isFirstResourceGrid,
 }: props) {
   /**
    * The time grid day needs to keep track of whether the mousedown event happened on a calendar event, in order to prevent
@@ -107,6 +109,7 @@ export default function TimeGridDay({
     const newClassNames = [...baseClasses]
     if (isSameDay($app.datePickerState.selectedDate.value, date))
       newClassNames.push('is-selected')
+    if (isFirstResourceGrid) newClassNames.push('is-first-resource-grid')
     return newClassNames
   })
 

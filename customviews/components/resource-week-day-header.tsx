@@ -4,6 +4,8 @@ import { isToday } from '@schedule-x/shared/src/utils/stateless/time/comparison'
 import { toDateString } from '@schedule-x/shared/src'
 import { getDayNameShort } from '@schedule-x/shared/src/utils/stateless/time/date-time-localization/date-time-localization'
 import CalendarConfigInternal from '@schedule-x/shared/src/interfaces/calendar/calendar-config'
+import { Signal, useComputed } from '@preact/signals'
+import { useRef } from 'preact/hooks'
 
 type props = {
   appConfig: CalendarConfigInternal
@@ -12,6 +14,8 @@ type props = {
   date: Temporal.ZonedDateTime
   idx: number
   minResourceColumnWidth: number
+  headerScrollLeft: Signal<number>
+  headerOffsetWidth: Signal<number>
 }
 
 export default function ResourceWeekDayHeader({
@@ -21,7 +25,9 @@ export default function ResourceWeekDayHeader({
   date,
   idx,
   minResourceColumnWidth,
+  headerOffsetWidth,
 }: props) {
+  const resourceWeekDayGroupRef = useRef<HTMLDivElement>(null)
   const getClassNames = (date: Temporal.ZonedDateTime) => {
     const classNames = [
       'sx__week-grid__date',
@@ -33,9 +39,20 @@ export default function ResourceWeekDayHeader({
     return classNames.join(' ')
   }
 
+  const dateElementRef = useRef<HTMLDivElement>(null)
+
+  const gridDayNameContainerLeft = useComputed(() => {
+    const halfOffset = headerOffsetWidth.value / 2
+    if (dateElementRef.current?.clientWidth) {
+      return halfOffset - dateElementRef.current.clientWidth / 2
+    }
+    return halfOffset
+  })
+
   return (
     <div
       className="sx__resource-week-day-group"
+      ref={resourceWeekDayGroupRef}
       key={day.date}
       style={{
         display: 'flex',
@@ -50,21 +67,31 @@ export default function ResourceWeekDayHeader({
         data-date={toDateString(date)}
         style={{
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          flexDirection: 'row',
           borderBottom: 'var(--sx-border)',
-          padding: '8px 0',
+          padding: `8px ${(0.25 * headerOffsetWidth.value) / 2}px`,
           borderLeft:
-            idx > 0 ? '1px dashed var(--sx-color-outline-variant)' : 'none',
+            idx > 0 ? `3px dashed var(--sx-color-outline-variant)` : 'none',
           borderImage:
             'linear-gradient(to top, var(--sx-color-outline-variant), rgba(0, 0, 0, 0)) 1 100%',
         }}
         data-index={idx}
       >
-        <div className="sx__week-grid__day-name">
-          {getDayNameShort(date, appConfig.locale.value)}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            position: 'sticky',
+            left: `${gridDayNameContainerLeft}px`,
+          }}
+          ref={dateElementRef}
+        >
+          <div className="sx__week-grid__day-name">
+            {getDayNameShort(date, appConfig.locale.value)}
+          </div>
+          <div className="sx__week-grid__date-number">{date.day}</div>
         </div>
-        <div className="sx__week-grid__date-number">{date.day}</div>
       </div>
 
       {/* Resource names row below the day */}
@@ -76,27 +103,29 @@ export default function ResourceWeekDayHeader({
         }}
       >
         {people.length > 0 ? (
-          people.map((person, personIdx) => (
-            <div
-              key={`${day.date}-${person}`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '8px 4px',
-                fontSize: 'var(--sx-font-small)',
-                fontWeight: 600,
-                color: 'var(--sx-color-neutral)',
-                borderLeft: '1px solid var(--sx-color-outline-variant)',
-                borderImage:
-                  (personIdx == 0 && idx == 0) || personIdx != 0
-                    ? 'linear-gradient(to top, var(--sx-color-outline-variant), rgba(0, 0, 0, 0)) 1 100%'
-                    : 'none',
-              }}
-            >
-              {person}
-            </div>
-          ))
+          people.map((person, personIdx) => {
+            return (
+              <div
+                key={`${day.date}-${personIdx}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '8px 4px',
+                  fontSize: 'var(--sx-font-small)',
+                  fontWeight: 600,
+                  color: 'var(--sx-color-neutral)',
+                  borderLeft: `${personIdx == 0 ? 3 : 1}px solid var(--sx-color-outline-variant)`,
+                  borderImage:
+                    (personIdx == 0 && idx == 0) || personIdx != 0
+                      ? 'linear-gradient(to top, var(--sx-color-outline-variant), rgba(0, 0, 0, 0)) 1 100%'
+                      : 'none',
+                }}
+              >
+                {person}
+              </div>
+            )
+          })
         ) : (
           <div
             style={{

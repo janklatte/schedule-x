@@ -29,7 +29,10 @@ import '../../packages/timezone-select/src/timezone-select.scss'
 import { createCurrentTimePlugin } from '../../packages/current-time/src'
 import { translations as timezoneSelectTranslations } from '../../packages/timezone-select/src'
 import { createDragToCreatePlugin } from '../../drag-to-create-plugin'
-import { createViewResourceWeek } from '../../customviews/create-view'
+import {
+  createViewResourceWeek,
+  createViewResourceDay,
+} from '../../customviews/create-view'
 
 const calendarElement = document.getElementById('calendar') as HTMLElement
 
@@ -72,6 +75,7 @@ const calendar = createCalendar({
     createViewMonthAgenda(),
     createViewList(),
     createViewResourceWeek(),
+    createViewResourceDay(),
   ],
   defaultView: 'resource-week',
   callbacks: {
@@ -194,7 +198,7 @@ const calendar = createCalendar({
   },
   weekOptions: {
     gridStep: 30,
-    gridHeight: 700,
+    gridHeight: 600,
     eventWidth: 95,
   },
   backgroundEvents: [
@@ -237,6 +241,26 @@ const calendar = createCalendar({
     ['asdf-4321', 'Jane Smith'],
     ['fdsa-4321', 'Ralle Rostfrei'],
     ['fdsa-1234', 'Ingo Injektor'],
+    ['fdsa-5678', 'John Doe'],
+    ['fdsa-9012', 'Marlene Kübler'],
+    ['fdsa-3456', 'Rainer Zufall'],
+    ['fdsa-7890', 'Felix Fuchs'],
+    ['fdsa-0123', 'Hans Müller'],
+    ['fdsa-4567', 'Maria Schmidt'],
+    ['fdsa-8901', 'Peter Wagner'],
+    ['fdsa-2345', 'Laura Meier'],
+    ['fdsa-6789', 'Thomas Neumann'],
+    ['fdsa-1011', 'Anna Becker'],
+    ['fdsa-3212', 'Michael Fischer'],
+    ['fdsa-5313', 'Sandra Klein'],
+    ['fdsa-7414', 'Oliver Müller'],
+    ['fdsa-9636', 'Julia Becker'],
+    ['fdsa-1597', 'Markus Schmidt'],
+    ['fdsa-3579', 'Thomas Wagner'],
+    ['fdsa-2468', 'Laura Meier'],
+    ['fdsa-1357', 'Thomas Neumann'],
+    ['fdsa-0246', 'Anna Becker'],
+    ['fdsa-9876', 'Michael Fischer'],
   ]),
   events: [
     {
@@ -270,8 +294,8 @@ const calendar = createCalendar({
     {
       id: 5,
       title: 'Inside Range',
-      start: Temporal.ZonedDateTime.from('2025-10-25T16:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-25T17:30[Europe/Berlin]'),
+      start: Temporal.ZonedDateTime.from('2025-10-28T16:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-10-29T17:30[Europe/Berlin]'),
       resourceId: 'asdf-4321',
     },
     {
