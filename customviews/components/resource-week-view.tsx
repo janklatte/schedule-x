@@ -10,6 +10,7 @@ import { toIntegers } from '@schedule-x/shared/src/utils/stateless/time/format-c
 import ResourceWeekDayHeader from './resource-week-day-header'
 import { useRef, useEffect, useCallback } from 'preact/hooks'
 import { signal } from '@preact/signals'
+import { filterByRange } from '@schedule-x/calendar/src/utils/stateless/events/filter-by-range'
 
 export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
   // Set grid height
@@ -113,6 +114,46 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
 
     // Position events in the time grid - same as week view
     const weekWithEvents = positionInTimeGrid(timeGridEvents, week, $app)
+
+    Object.entries(weekWithEvents).forEach(([date, day]) => {
+      const plainDate = Temporal.PlainDate.from(date)
+      const rangeStartDateTime = Temporal.ZonedDateTime.from({
+        year: plainDate.year,
+        month: plainDate.month,
+        day: plainDate.day,
+        hour:
+          $app.config.dayBoundaries.value.start === 0
+            ? 0
+            : $app.config.dayBoundaries.value.start / 100,
+        minute: 0,
+        second: 0,
+        timeZone: $app.config.timezone.value,
+      })
+      let rangeEndDateTime = Temporal.ZonedDateTime.from({
+        year: plainDate.year,
+        month: plainDate.month,
+        day: plainDate.day,
+        hour:
+          $app.config.dayBoundaries.value.end === 2400
+            ? 23
+            : $app.config.dayBoundaries.value.end / 100,
+        minute: $app.config.dayBoundaries.value.end === 2400 ? 59 : 0,
+        second: $app.config.dayBoundaries.value.end === 2400 ? 59 : 0,
+        timeZone: $app.config.timezone.value,
+      })
+      if ($app.config.isHybridDay) {
+        rangeEndDateTime = rangeEndDateTime.add({ days: 1 })
+      }
+
+      day.backgroundEvents = filterByRange(
+        $app.calendarEvents.backgroundEvents.value,
+        {
+          start: rangeStartDateTime,
+          end: rangeEndDateTime,
+        },
+        $app.config.timezone.value
+      )
+    })
 
     return { people: uniquePeople, week: weekWithEvents }
   })

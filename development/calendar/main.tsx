@@ -50,6 +50,33 @@ const dragToCreatePlugin = createDragToCreatePlugin({
   },
 })
 
+const resources = new Map([
+  ['asdf-1234', 'Jimmy Doe'],
+  ['asdf-4321', 'Jane Smith'],
+  ['fdsa-4321', 'Ralle Rostfrei'],
+  ['fdsa-1234', 'Ingo Injektor'],
+  ['fdsa-5678', 'John Doe'],
+  ['fdsa-9012', 'Marlene Kübler'],
+  ['fdsa-3456', 'Rainer Zufall'],
+  ['fdsa-7890', 'Felix Fuchs'],
+  ['fdsa-0123', 'Hans Müller'],
+  ['fdsa-4567', 'Maria Schmidt'],
+  ['fdsa-8901', 'Peter Wagner'],
+  ['fdsa-2345', 'Laura Meier'],
+  ['fdsa-6789', 'Thomas Neumann'],
+  ['fdsa-1011', 'Anna Becker'],
+  ['fdsa-3212', 'Michael Fischer'],
+  ['fdsa-5313', 'Sandra Klein'],
+  ['fdsa-7414', 'Oliver Müller'],
+  ['fdsa-9636', 'Julia Becker'],
+  ['fdsa-1597', 'Markus Schmidt'],
+  ['fdsa-3579', 'Thomas Wagner'],
+  ['fdsa-2468', 'Laura Meier'],
+  ['fdsa-1357', 'Thomas Neumann'],
+  ['fdsa-0246', 'Anna Becker'],
+  ['fdsa-9876', 'Michael Fischer'],
+])
+
 const events = [
   {
     id: 1,
@@ -128,17 +155,39 @@ const events = [
     } */
 ]
 
-Array.from({ length: 10 }).forEach((_, index) => {
-  events.push({
-    id: 8 + index + 1,
-    title: `Event ${8 + index + 1}`,
-    start: Temporal.ZonedDateTime.from(
-      `2025-11-04T${String(index + 9).padStart(2, '0')}:00[Europe/Berlin]`
-    ),
-    end: Temporal.ZonedDateTime.from(
-      `2025-11-04T${String(index + 10).padStart(2, '0')}:00[Europe/Berlin]`
-    ),
-    resourceId: 'asdf-1234',
+// Generate 10 events for each resource for each day of the current week
+let eventId = 9
+const currentDate = Temporal.Now.plainDateISO()
+const firstDayOfWeek = 1 // Monday
+
+// Calculate the start of the current week
+const dayOfWeek = currentDate.dayOfWeek
+const daysToSubtract = (dayOfWeek - firstDayOfWeek + 7) % 7
+const weekStart = currentDate.subtract({ days: daysToSubtract })
+
+// Generate events for each resource
+Array.from(resources.keys()).forEach((resourceId) => {
+  // For each day of the week (7 days)
+  Array.from({ length: 7 }).forEach((_, dayIndex) => {
+    const currentDay = weekStart.add({ days: dayIndex })
+
+    // Create 10 events for this resource on this day
+    Array.from({ length: 1 }).forEach((_, eventIndex) => {
+      const startHour = 8 + eventIndex // Starting from 8:00
+      const endHour = startHour + 1
+
+      events.push({
+        id: eventId++,
+        title: `Event ${eventId - 1}`,
+        start: Temporal.ZonedDateTime.from(
+          `${currentDay}T${String(startHour).padStart(2, '0')}:00[Europe/Berlin]`
+        ),
+        end: Temporal.ZonedDateTime.from(
+          `${currentDay}T${String(endHour).padStart(2, '0')}:00[Europe/Berlin]`
+        ),
+        resourceId: resourceId,
+      })
+    })
   })
 })
 
@@ -303,12 +352,8 @@ const calendar = createCalendar({
   backgroundEvents: [
     {
       title: 'Out of office',
-      start: Temporal.ZonedDateTime.from(
-        '2025-08-08T00:00:00.000+02:00[Europe/Berlin]'
-      ),
-      end: Temporal.ZonedDateTime.from(
-        '2025-08-09T12:00:00.000+02:00[Europe/Berlin]'
-      ),
+      start: Temporal.ZonedDateTime.from('2025-11-03T00:00:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-11-03T12:00:00[Europe/Berlin]'),
       style: {
         // create tilted 5px thick gray lines
         backgroundImage:
