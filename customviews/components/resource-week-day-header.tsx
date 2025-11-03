@@ -4,8 +4,8 @@ import { isToday } from '@schedule-x/shared/src/utils/stateless/time/comparison'
 import { toDateString } from '@schedule-x/shared/src'
 import { getDayNameShort } from '@schedule-x/shared/src/utils/stateless/time/date-time-localization/date-time-localization'
 import CalendarConfigInternal from '@schedule-x/shared/src/interfaces/calendar/calendar-config'
-import { Signal, useComputed } from '@preact/signals'
-import { useRef } from 'preact/hooks'
+import { Signal, useComputed, useSignal } from '@preact/signals'
+import { useRef, useEffect } from 'preact/hooks'
 
 type props = {
   appConfig: CalendarConfigInternal
@@ -40,7 +40,22 @@ export default function ResourceWeekDayHeader({
 
   const dateElementRef = useRef<HTMLDivElement>(null)
 
+  // Signal to trigger recalculation on window resize
+  const resizeTrigger = useSignal(0)
+
+  useEffect(() => {
+    const handleResize = () => {
+      resizeTrigger.value++
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const gridDayNameContainerLeft = useComputed(() => {
+    // Include resizeTrigger to trigger recalculation on window resize
+    const _ = resizeTrigger.value
+
     const halfOffset = headerOffsetWidth.value / 2
     if (dateElementRef.current?.clientWidth) {
       return halfOffset - dateElementRef.current.clientWidth / 2
