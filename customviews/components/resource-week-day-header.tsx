@@ -14,7 +14,6 @@ type props = {
   date: Temporal.ZonedDateTime
   idx: number
   minResourceColumnWidth: number
-  headerScrollLeft: Signal<number>
   headerOffsetWidth: Signal<number>
 }
 

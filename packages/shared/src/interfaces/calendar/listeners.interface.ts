@@ -30,6 +30,7 @@ export interface CalendarCallbacks {
     mouseDownEvent: MouseEvent
   ) => void
   onScrollDayIntoView?: (date: Temporal.PlainDate) => void
+  onWeekAgendaDayClick?: (date: Temporal.ZonedDateTime) => void
 
   /**
    * Run a validator function before updating an event.

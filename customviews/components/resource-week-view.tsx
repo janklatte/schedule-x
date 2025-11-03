@@ -25,7 +25,6 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
   // Refs for scroll synchronization
   const headerScrollRef = useRef<HTMLDivElement>(null)
   const gridScrollRef = useRef<HTMLDivElement>(null)
-  const headerScrollLeft = signal<number>(0)
   const headerOffsetWidth = signal<number>(
     headerScrollRef.current?.offsetWidth || 0
   )
@@ -64,16 +63,12 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
     const syncHeaderToGrid = () => {
       if (headerEl && gridEl) {
         headerEl.scrollLeft = gridEl.scrollLeft
-        headerScrollLeft.value = headerEl.scrollLeft
-        headerOffsetWidth.value = headerEl.offsetWidth
       }
     }
 
     const syncGridToHeader = () => {
       if (headerEl && gridEl) {
         gridEl.scrollLeft = headerEl.scrollLeft
-        headerScrollLeft.value = headerEl.scrollLeft
-        headerOffsetWidth.value = headerEl.offsetWidth
       }
     }
 
@@ -172,7 +167,6 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                           date={date}
                           idx={idx}
                           minResourceColumnWidth={MIN_RESOURCE_COLUMN_WIDTH}
-                          headerScrollLeft={headerScrollLeft}
                           headerOffsetWidth={headerOffsetWidth}
                         />
                       )

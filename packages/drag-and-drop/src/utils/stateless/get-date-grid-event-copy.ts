@@ -6,7 +6,8 @@ export const getDateGridEventCopy = (
   $app: CalendarAppSingleton,
   eventCopy: CalendarEventInternal
 ) => {
-  return ($app.elements.calendarWrapper as HTMLElement).querySelector(
+  const copy = ($app.elements.calendarWrapper as HTMLElement).querySelector(
     '#' + getTimeGridEventCopyElementId(eventCopy.id)
   ) as HTMLDivElement
+  return copy
 }

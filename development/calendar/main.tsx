@@ -32,6 +32,7 @@ import { createDragToCreatePlugin } from '../../drag-to-create-plugin'
 import {
   createViewResourceWeek,
   createViewResourceDay,
+  createViewWeekAgenda,
 } from '../../customviews/create-view'
 
 const calendarElement = document.getElementById('calendar') as HTMLElement
@@ -48,6 +49,99 @@ const dragToCreatePlugin = createDragToCreatePlugin({
     eventsServicePlugin.add(event)
   },
 })
+
+const events = [
+  {
+    id: 1,
+    title: 'On Min Boundary',
+    start: Temporal.ZonedDateTime.from('2025-10-24T09:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-10-24T10:00[Europe/Berlin]'),
+    resourceId: 'asdf-1234',
+  },
+  {
+    id: 2,
+    title: 'On Max Boundary',
+    start: Temporal.ZonedDateTime.from('2025-10-21T14:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-10-21T15:30[Europe/Berlin]'),
+    resourceId: 'asdf-4321',
+  },
+  {
+    id: 3,
+    title: 'Before Min',
+    start: Temporal.ZonedDateTime.from('2025-10-23T12:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-10-23T13:00[Europe/Berlin]'),
+    resourceId: 'asdf-1234',
+  },
+  {
+    id: 4,
+    title: 'After Max',
+    start: Temporal.ZonedDateTime.from('2025-10-20T08:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-10-20T09:00[Europe/Berlin]'),
+    resourceId: 'asdf-1234',
+  },
+  {
+    id: 5,
+    title: 'Inside Range',
+    start: Temporal.ZonedDateTime.from('2025-10-28T16:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-10-29T17:30[Europe/Berlin]'),
+    resourceId: 'asdf-4321',
+  },
+  {
+    id: 6,
+    title: 'Inside Range',
+    start: Temporal.ZonedDateTime.from('2025-10-18T16:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-10-18T17:30[Europe/Berlin]'),
+    people: ['Ralle Rostfrei'],
+    resourceId: 'fdsa-4321',
+  },
+  {
+    id: 7,
+    title: 'Inside Range',
+    start: Temporal.ZonedDateTime.from('2025-10-19T16:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-10-19T17:30[Europe/Berlin]'),
+    resourceId: 'fdsa-4321',
+  },
+  {
+    id: 8,
+    title: 'Inside Range',
+    start: Temporal.ZonedDateTime.from('2025-10-20T16:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-10-20T17:30[Europe/Berlin]'),
+    resourceId: 'fdsa-1234',
+  },
+  /* ...seededEvents.map(event => ({
+    ...event,
+    start: dateStringRegex.test(event.start) ? Temporal.PlainDate.from(event.start) : Temporal.ZonedDateTime.from(event.start),
+    end: dateStringRegex.test(event.end) ? Temporal.PlainDate.from(event.end) : Temporal.ZonedDateTime.from(event.end),
+  })), */
+  /*     {
+    id: 1,
+    title: 'weekly',
+    start: Temporal.PlainDate.from('2025-08-08'),
+    end: Temporal.PlainDate.from('2025-08-08'),
+    rrule: 'FREQ=WEEKLY;COUNT=10;BYDAY=MO,TU,WE,TH,FR',
+  } */
+  /* {
+      id: 123,
+      title: 'monthly',
+      start: Temporal.ZonedDateTime.from('2025-08-11T14:00+02:00[Europe/Berlin]'),
+      end: Temporal.ZonedDateTime.from('2025-08-12T15:00+02:00[Europe/Berlin]'),
+    } */
+]
+
+Array.from({ length: 10 }).forEach((_, index) => {
+  events.push({
+    id: 8 + index + 1,
+    title: `Event ${8 + index + 1}`,
+    start: Temporal.ZonedDateTime.from(
+      `2025-11-04T${String(index + 9).padStart(2, '0')}:00[Europe/Berlin]`
+    ),
+    end: Temporal.ZonedDateTime.from(
+      `2025-11-04T${String(index + 10).padStart(2, '0')}:00[Europe/Berlin]`
+    ),
+    resourceId: 'asdf-1234',
+  })
+})
+
 const calendar = createCalendar({
   plugins: [
     createEventRecurrencePlugin(),
@@ -76,8 +170,9 @@ const calendar = createCalendar({
     createViewList(),
     createViewResourceWeek(),
     createViewResourceDay(),
+    createViewWeekAgenda(),
   ],
-  defaultView: 'resource-week',
+  defaultView: 'week-agenda',
   callbacks: {
     onScrollDayIntoView(date) {
       console.log('onScrollDayIntoView: ', date)
@@ -133,6 +228,10 @@ const calendar = createCalendar({
       console.log('onRangeUpdate', range.start.toString(), range.end.toString())
       /* console.log(range.start.toString())
       console.log(range.end.toString()) */
+    },
+
+    onWeekAgendaDayClick(event) {
+      console.log('onWeekAgendaDayClick', event)
     },
   },
   // selectedDate: Temporal.PlainDate.from({ year: 2024, month: 2, day: 5 }),
@@ -262,84 +361,51 @@ const calendar = createCalendar({
     ['fdsa-0246', 'Anna Becker'],
     ['fdsa-9876', 'Michael Fischer'],
   ]),
-  events: [
-    {
-      id: 1,
-      title: 'On Min Boundary',
-      start: Temporal.ZonedDateTime.from('2025-10-24T09:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-24T10:00[Europe/Berlin]'),
-      resourceId: 'asdf-1234',
-    },
-    {
-      id: 2,
-      title: 'On Max Boundary',
-      start: Temporal.ZonedDateTime.from('2025-10-21T14:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-21T15:30[Europe/Berlin]'),
-      resourceId: 'asdf-4321',
-    },
-    {
-      id: 3,
-      title: 'Before Min',
-      start: Temporal.ZonedDateTime.from('2025-10-23T12:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-23T13:00[Europe/Berlin]'),
-      resourceId: 'asdf-1234',
-    },
-    {
-      id: 4,
-      title: 'After Max',
-      start: Temporal.ZonedDateTime.from('2025-10-20T08:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-20T09:00[Europe/Berlin]'),
-      resourceId: 'asdf-1234',
-    },
-    {
-      id: 5,
-      title: 'Inside Range',
-      start: Temporal.ZonedDateTime.from('2025-10-28T16:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-29T17:30[Europe/Berlin]'),
-      resourceId: 'asdf-4321',
-    },
-    {
-      id: 6,
-      title: 'Inside Range',
-      start: Temporal.ZonedDateTime.from('2025-10-18T16:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-18T17:30[Europe/Berlin]'),
-      people: ['Ralle Rostfrei'],
-      resourceId: 'fdsa-4321',
-    },
-    {
-      id: 7,
-      title: 'Inside Range',
-      start: Temporal.ZonedDateTime.from('2025-10-19T16:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-19T17:30[Europe/Berlin]'),
-      resourceId: 'fdsa-4321',
-    },
-    {
-      id: 8,
-      title: 'Inside Range',
-      start: Temporal.ZonedDateTime.from('2025-10-20T16:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-10-20T17:30[Europe/Berlin]'),
-      resourceId: 'fdsa-1234',
-    },
-    /* ...seededEvents.map(event => ({
-      ...event,
-      start: dateStringRegex.test(event.start) ? Temporal.PlainDate.from(event.start) : Temporal.ZonedDateTime.from(event.start),
-      end: dateStringRegex.test(event.end) ? Temporal.PlainDate.from(event.end) : Temporal.ZonedDateTime.from(event.end),
-    })), */
-    /*     {
-      id: 1,
-      title: 'weekly',
-      start: Temporal.PlainDate.from('2025-08-08'),
-      end: Temporal.PlainDate.from('2025-08-08'),
-      rrule: 'FREQ=WEEKLY;COUNT=10;BYDAY=MO,TU,WE,TH,FR',
-    } */
-    /* {
-        id: 123,
-        title: 'monthly',
-        start: Temporal.ZonedDateTime.from('2025-08-11T14:00+02:00[Europe/Berlin]'),
-        end: Temporal.ZonedDateTime.from('2025-08-12T15:00+02:00[Europe/Berlin]'),
-      } */
-  ],
+  events: events,
 })
+
+// // Set custom event component for time grid events (also used by agenda view)
+// calendar._setCustomComponentFn('timeGridEvent', (element, props) => {
+//   if (!element) return
+
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   const event = props.calendarEvent as any
+
+//   // Create custom styled event
+//   element.innerHTML = `
+//     <div style="
+//       padding: 8px;
+//       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+//       color: white;
+//       height: 100%;
+//       border-left: 4px solid #ff6b6b;
+//       border-radius: 4px;
+//       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+//       font-family: 'Open Sans', sans-serif;
+//     ">
+//       <div style="font-weight: bold; margin-bottom: 4px; font-size: 13px;">
+//         🎨 ${event.title}
+//       </div>
+//       <div style="font-size: 11px; opacity: 0.9;">
+//         ${event.start.toLocaleString('en-US', {
+//           hour: 'numeric',
+//           minute: 'numeric',
+//         })} - ${event.end.toLocaleString('en-US', {
+//           hour: 'numeric',
+//           minute: 'numeric',
+//         })}
+//       </div>
+//       ${
+//         event.people && event.people.length > 0
+//           ? `<div style="font-size: 10px; margin-top: 4px; opacity: 0.85;">
+//               👥 ${event.people.join(', ')}
+//             </div>`
+//           : ''
+//       }
+//     </div>
+//   `
+// })
+
 calendar.render(calendarElement)
 
 // change timezone via calendarControlsPlugin

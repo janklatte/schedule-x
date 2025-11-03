@@ -6,6 +6,7 @@ export const calendarDeDE: CalendarTranslations = {
   Week: 'Woche',
   ResourceWeek: 'Wochenplan',
   ResourceDay: 'Tagesplan',
+  WeekAgenda: 'Wochenübersicht',
   Day: 'Tag',
   List: 'Liste',
   'Select View': 'Ansicht auswählen',

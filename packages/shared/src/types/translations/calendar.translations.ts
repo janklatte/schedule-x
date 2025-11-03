@@ -4,6 +4,7 @@ export interface CalendarTranslations {
   Week: string
   ResourceWeek: string
   ResourceDay: string
+  WeekAgenda: string
   Day: string
   List: string
   'Select View': string
