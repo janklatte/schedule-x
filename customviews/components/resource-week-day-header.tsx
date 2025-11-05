@@ -54,6 +54,7 @@ export default function ResourceWeekDayHeader({
 
   const gridDayNameContainerLeft = useComputed(() => {
     // Include resizeTrigger to trigger recalculation on window resize
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _ = resizeTrigger.value
 
     const halfOffset = headerOffsetWidth.value / 2
