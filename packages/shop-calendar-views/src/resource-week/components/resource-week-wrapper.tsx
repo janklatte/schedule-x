@@ -1,5 +1,5 @@
 import { useComputed } from '@preact/signals'
-import { PreactViewComponent } from '../create-view'
+import { PreactViewComponent } from '@schedule-x/shared/src/types/calendar/preact-view-component'
 import { createWeek } from '@schedule-x/calendar/src/utils/stateless/views/week/create-week'
 import { AppContext } from '@schedule-x/calendar/src/utils/stateful/app-context'
 import TimeAxis from '@schedule-x/calendar/src/components/week-grid/time-axis'

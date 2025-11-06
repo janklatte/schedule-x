@@ -28,12 +28,12 @@ import { IANATimezone } from '@schedule-x/shared/src/utils/stateless/time/tzdb.t
 import '../../packages/timezone-select/src/timezone-select.scss'
 import { createCurrentTimePlugin } from '../../packages/current-time/src'
 import { translations as timezoneSelectTranslations } from '../../packages/timezone-select/src'
-import { createDragToCreatePlugin } from '../../drag-to-create-plugin'
+import { createDragToCreatePlugin } from '../../packages/drag-to-create/src'
 import {
   createViewResourceWeek,
   createViewResourceDay,
   createViewWeekAgenda,
-} from '../../customviews/create-view'
+} from '../../packages/shop-calendar-views/src'
 
 const calendarElement = document.getElementById('calendar') as HTMLElement
 

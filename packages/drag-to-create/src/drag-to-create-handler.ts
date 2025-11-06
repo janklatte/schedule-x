@@ -235,9 +235,6 @@ export default class DragToCreateHandler {
     const endTop = endPercentageOfDay * 100
     const height = endTop - startTop
 
-    console.log('startPercentageOfDay', startTop)
-    console.log('height', height)
-
     this.previewElement.style.top = `${startTop}%`
     this.previewElement.style.height = `${height}%`
     this.previewElement.style.left = '0'

@@ -7,6 +7,9 @@
 // Other components
 @use 'date-picker';
 
+// Drag-to-create component
+@use 'drag-to-create';
+
 // Calendar components
 @use 'components/calendar/header/calendar-wrapper';
 @use 'components/calendar/header/calendar-header';

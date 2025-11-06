@@ -6,7 +6,7 @@ import { sortEventsByStartAndEnd } from '@schedule-x/calendar/src/utils/stateles
 import { useComputed } from '@preact/signals'
 import WeekAgendaGridDay from './week-agenda-grid-day'
 import { toIntegers } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/format-conversion'
-import { positionEventsForAgenda } from '../position-events-for-agenda'
+import { positionEventsForAgenda } from '../utils/position-events-for-agenda'
 
 export const WeekAgendaWrapper: PreactViewComponent = ({ $app, id }) => {
   document.documentElement.style.setProperty(

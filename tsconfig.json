@@ -26,7 +26,6 @@
     "packages",
     "development",
     "shared",
-    "customviews",
     "packages/types.d.ts"
   ],
   "files": ["packages/types.d.ts"],

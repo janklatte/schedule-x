@@ -57,20 +57,3 @@ body {
   background-color: #1c1b1f;
   color: #fff;
 }
-
-/* Drag-to-create plugin styles */
-.sx__drag-to-create-preview {
-  background: rgba(33, 0, 94, 0.5) !important;
-  border: 2px solid #21005e !important;
-  border-radius: 4px;
-}
-
-.sx__drag-to-create-preview .sx__event-title {
-  padding: 4px 8px;
-  font-weight: 500;
-  color: #21005e;
-}
-
-.sx__week-header-border {
-  border-left: 150px solid transparent;
-}
