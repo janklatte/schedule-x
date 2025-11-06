@@ -17,6 +17,9 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
   private readonly dayWidth: number
   private readonly startY: number
   private readonly startX
+  private readonly startScrollLeft: number
+  private readonly scrollableElement: HTMLElement | null
+  private lastClientX: number
   private lastIntervalDiff = 0
   private lastDaySlotsDiff = 0
   private lastDaysDiff = 0
@@ -40,6 +43,9 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
     ).clientWidth
     this.startY = this.eventCoordinates.clientY
     this.startX = this.eventCoordinates.clientX
+    this.lastClientX = this.eventCoordinates.clientX
+    this.scrollableElement = this.findScrollableElement()
+    this.startScrollLeft = this.scrollableElement?.scrollLeft || 0
     this.originalStart = Temporal.ZonedDateTime.from(
       this.eventCopy.start.toString()
     )
@@ -65,6 +71,13 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
     return this.resourceIdToDaySlotIdx.get(resourceId) || 0
   }
 
+  private findScrollableElement(): HTMLElement | null {
+    const calendarWrapper = this.$app.elements.calendarWrapper as HTMLElement
+    return calendarWrapper.querySelector(
+      '.sx__week-grid-scrollable'
+    ) as HTMLElement | null
+  }
+
   private init() {
     document.addEventListener('mousemove', this.handleMouseOrTouchMove)
     document.addEventListener('mouseup', this.handleMouseUpOrTouchEnd)
@@ -73,19 +86,36 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
       passive: false,
     })
     document.addEventListener('touchend', this.handleMouseUpOrTouchEnd)
+
+    this.scrollableElement?.addEventListener('scroll', this.handleScroll)
   }
 
   private handleMouseOrTouchMove = (uiEvent: UIEvent) => {
     const { clientX, clientY } = getEventCoordinates(uiEvent)
+    this.lastClientX = clientX
     const pixelDiffY = clientY - this.startY
     const timePointsDiffY = pixelDiffY * this.timePointsPerPixel()
     const currentIntervalDiff = Math.round(
       timePointsDiffY / this.CHANGE_THRESHOLD_IN_TIME_POINTS
     )
-    const pixelDiffX = clientX - this.startX
-    const currentDaySlotsDiff = Math.round(pixelDiffX / this.dayWidth)
+
+    // Calculate position relative to scrollable content, not viewport
+    const currentContentX = clientX + (this.scrollableElement?.scrollLeft || 0)
+    const startContentX = this.startX + this.startScrollLeft
+    const totalPixelDiffX = currentContentX - startContentX
+    const currentDaySlotsDiff = Math.round(totalPixelDiffX / this.dayWidth)
 
     this.handleVerticalMouseOrTouchMove(currentIntervalDiff)
+    this.handleHorizontalMouseOrTouchMove(currentDaySlotsDiff)
+  }
+
+  private handleScroll = () => {
+    // Use the last known mouse position to calculate total movement relative to content
+    const currentContentX =
+      this.lastClientX + (this.scrollableElement?.scrollLeft || 0)
+    const startContentX = this.startX + this.startScrollLeft
+    const totalPixelDiffX = currentContentX - startContentX
+    const currentDaySlotsDiff = Math.round(totalPixelDiffX / this.dayWidth)
     this.handleHorizontalMouseOrTouchMove(currentDaySlotsDiff)
   }
 
@@ -115,14 +145,6 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
       this.eventCopy.end as Temporal.ZonedDateTime,
       pointsToAdd
     )
-    const stringNewStart = newStart.toString()
-    const stringNewEnd = newEnd.toString()
-    const stringDayBoundariesStart = this.dayBoundariesDateTime.start.toString()
-    const stringDayBoundariesEnd = this.dayBoundariesDateTime.end.toString()
-    console.log('stringNewStart', stringNewStart)
-    console.log('stringNewEnd', stringNewEnd)
-    console.log('stringDayBoundariesStart', stringDayBoundariesStart)
-    console.log('stringDayBoundariesEnd', stringDayBoundariesEnd)
     let currentDiff = this.lastDaysDiff
     if (this.$app.config.direction === 'rtl') currentDiff = -currentDiff
 
@@ -244,6 +266,7 @@ export default class TimeGridDragHandlerImpl implements TimeGridDragHandler {
     document.removeEventListener('touchmove', this.handleMouseOrTouchMove)
     document.removeEventListener('mouseup', this.handleMouseUpOrTouchEnd)
     document.removeEventListener('touchend', this.handleMouseUpOrTouchEnd)
+    this.scrollableElement?.removeEventListener('scroll', this.handleScroll)
     this.updateCopy(undefined)
 
     const shouldAbort = await testIfShouldAbort(

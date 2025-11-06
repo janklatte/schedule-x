@@ -53,28 +53,28 @@ const dragToCreatePlugin = createDragToCreatePlugin({
 const resources = new Map([
   ['asdf-1234', 'Jimmy Doe'],
   ['asdf-4321', 'Jane Smith'],
-  ['fdsa-4321', 'Ralle Rostfrei'],
-  ['fdsa-1234', 'Ingo Injektor'],
-  ['fdsa-5678', 'John Doe'],
-  ['fdsa-9012', 'Marlene Kübler'],
-  ['fdsa-3456', 'Rainer Zufall'],
-  ['fdsa-7890', 'Felix Fuchs'],
-  ['fdsa-0123', 'Hans Müller'],
-  ['fdsa-4567', 'Maria Schmidt'],
-  ['fdsa-8901', 'Peter Wagner'],
-  ['fdsa-2345', 'Laura Meier'],
-  ['fdsa-6789', 'Thomas Neumann'],
-  ['fdsa-1011', 'Anna Becker'],
-  ['fdsa-3212', 'Michael Fischer'],
-  ['fdsa-5313', 'Sandra Klein'],
-  ['fdsa-7414', 'Oliver Müller'],
-  ['fdsa-9636', 'Julia Becker'],
-  ['fdsa-1597', 'Markus Schmidt'],
-  ['fdsa-3579', 'Thomas Wagner'],
-  ['fdsa-2468', 'Laura Meier'],
-  ['fdsa-1357', 'Thomas Neumann'],
-  ['fdsa-0246', 'Anna Becker'],
-  ['fdsa-9876', 'Michael Fischer'],
+  // ['fdsa-4321', 'Ralle Rostfrei'],
+  // ['fdsa-1234', 'Ingo Injektor'],
+  // ['fdsa-5678', 'John Doe'],
+  // ['fdsa-9012', 'Marlene Kübler'],
+  // ['fdsa-3456', 'Rainer Zufall'],
+  // ['fdsa-7890', 'Felix Fuchs'],
+  // ['fdsa-0123', 'Hans Müller'],
+  // ['fdsa-4567', 'Maria Schmidt'],
+  // ['fdsa-8901', 'Peter Wagner'],
+  // ['fdsa-2345', 'Laura Meier'],
+  // ['fdsa-6789', 'Thomas Neumann'],
+  // ['fdsa-1011', 'Anna Becker'],
+  // ['fdsa-3212', 'Michael Fischer'],
+  // ['fdsa-5313', 'Sandra Klein'],
+  // ['fdsa-7414', 'Oliver Müller'],
+  // ['fdsa-9636', 'Julia Becker'],
+  // ['fdsa-1597', 'Markus Schmidt'],
+  // ['fdsa-3579', 'Thomas Wagner'],
+  // ['fdsa-2468', 'Laura Meier'],
+  // ['fdsa-1357', 'Thomas Neumann'],
+  // ['fdsa-0246', 'Anna Becker'],
+  // ['fdsa-9876', 'Michael Fischer'],
 ])
 
 const events = [
@@ -91,49 +91,6 @@ const events = [
     start: Temporal.ZonedDateTime.from('2025-10-21T14:00[Europe/Berlin]'),
     end: Temporal.ZonedDateTime.from('2025-10-21T15:30[Europe/Berlin]'),
     resourceId: 'asdf-4321',
-  },
-  {
-    id: 3,
-    title: 'Before Min',
-    start: Temporal.ZonedDateTime.from('2025-10-23T12:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2025-10-23T13:00[Europe/Berlin]'),
-    resourceId: 'asdf-1234',
-  },
-  {
-    id: 4,
-    title: 'After Max',
-    start: Temporal.ZonedDateTime.from('2025-10-20T08:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2025-10-20T09:00[Europe/Berlin]'),
-    resourceId: 'asdf-1234',
-  },
-  {
-    id: 5,
-    title: 'Inside Range',
-    start: Temporal.ZonedDateTime.from('2025-10-28T16:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2025-10-29T17:30[Europe/Berlin]'),
-    resourceId: 'asdf-4321',
-  },
-  {
-    id: 6,
-    title: 'Inside Range',
-    start: Temporal.ZonedDateTime.from('2025-10-18T16:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2025-10-18T17:30[Europe/Berlin]'),
-    people: ['Ralle Rostfrei'],
-    resourceId: 'fdsa-4321',
-  },
-  {
-    id: 7,
-    title: 'Inside Range',
-    start: Temporal.ZonedDateTime.from('2025-10-19T16:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2025-10-19T17:30[Europe/Berlin]'),
-    resourceId: 'fdsa-4321',
-  },
-  {
-    id: 8,
-    title: 'Inside Range',
-    start: Temporal.ZonedDateTime.from('2025-10-20T16:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2025-10-20T17:30[Europe/Berlin]'),
-    resourceId: 'fdsa-1234',
   },
   /* ...seededEvents.map(event => ({
     ...event,
@@ -198,7 +155,7 @@ const calendar = createCalendar({
     createDragAndDropPlugin(),
     createResizePlugin(),
     calendarControlsPlugin,
-    scrollController,
+    // scrollController,
     createCurrentTimePlugin(),
     dragToCreatePlugin,
   ],
@@ -221,7 +178,7 @@ const calendar = createCalendar({
     createViewResourceDay(),
     createViewWeekAgenda(),
   ],
-  defaultView: 'week-agenda',
+  defaultView: 'resource-week',
   callbacks: {
     onScrollDayIntoView(date) {
       console.log('onScrollDayIntoView: ', date)
@@ -380,76 +337,51 @@ const calendar = createCalendar({
 
   // tz new york
   timezone: 'Europe/Berlin',
-  resources: new Map([
-    ['asdf-1234', 'Jimmy Doe'],
-    ['asdf-4321', 'Jane Smith'],
-    ['fdsa-4321', 'Ralle Rostfrei'],
-    ['fdsa-1234', 'Ingo Injektor'],
-    ['fdsa-5678', 'John Doe'],
-    ['fdsa-9012', 'Marlene Kübler'],
-    ['fdsa-3456', 'Rainer Zufall'],
-    ['fdsa-7890', 'Felix Fuchs'],
-    ['fdsa-0123', 'Hans Müller'],
-    ['fdsa-4567', 'Maria Schmidt'],
-    ['fdsa-8901', 'Peter Wagner'],
-    ['fdsa-2345', 'Laura Meier'],
-    ['fdsa-6789', 'Thomas Neumann'],
-    ['fdsa-1011', 'Anna Becker'],
-    ['fdsa-3212', 'Michael Fischer'],
-    ['fdsa-5313', 'Sandra Klein'],
-    ['fdsa-7414', 'Oliver Müller'],
-    ['fdsa-9636', 'Julia Becker'],
-    ['fdsa-1597', 'Markus Schmidt'],
-    ['fdsa-3579', 'Thomas Wagner'],
-    ['fdsa-2468', 'Laura Meier'],
-    ['fdsa-1357', 'Thomas Neumann'],
-    ['fdsa-0246', 'Anna Becker'],
-    ['fdsa-9876', 'Michael Fischer'],
-  ]),
+  resources: resources,
   events: events,
 })
 
-// // Set custom event component for time grid events (also used by agenda view)
-// calendar._setCustomComponentFn('timeGridEvent', (element, props) => {
-//   if (!element) return
+// Set custom event component for time grid events (also used by agenda view)
+calendar._setCustomComponentFn('timeGridEvent', (element, props) => {
+  if (!element) return
 
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   const event = props.calendarEvent as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const event = props.calendarEvent as any
 
-//   // Create custom styled event
-//   element.innerHTML = `
-//     <div style="
-//       padding: 8px;
-//       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-//       color: white;
-//       height: 100%;
-//       border-left: 4px solid #ff6b6b;
-//       border-radius: 4px;
-//       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-//       font-family: 'Open Sans', sans-serif;
-//     ">
-//       <div style="font-weight: bold; margin-bottom: 4px; font-size: 13px;">
-//         🎨 ${event.title}
-//       </div>
-//       <div style="font-size: 11px; opacity: 0.9;">
-//         ${event.start.toLocaleString('en-US', {
-//           hour: 'numeric',
-//           minute: 'numeric',
-//         })} - ${event.end.toLocaleString('en-US', {
-//           hour: 'numeric',
-//           minute: 'numeric',
-//         })}
-//       </div>
-//       ${
-//         event.people && event.people.length > 0
-//           ? `<div style="font-size: 10px; margin-top: 4px; opacity: 0.85;">
-//               👥 ${event.people.join(', ')}
-//             </div>`
-//           : ''
-//       }
-//     </div>
-//   `
-// })
+  // Create custom styled event
+  element.innerHTML = `
+    <div style="
+      padding: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      height: 100%;
+      border-left: 4px solid #ff6b6b;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      font-family: 'Open Sans', sans-serif;
+    ">
+      <div style="font-weight: bold; margin-bottom: 4px; font-size: 13px;">
+        🎨 ${event.title}
+      </div>
+      <div style="font-size: 11px; opacity: 0.9;">
+        ${event.start.toLocaleString('en-US', {
+          hour: 'numeric',
+          minute: 'numeric',
+        })} - ${event.end.toLocaleString('en-US', {
+          hour: 'numeric',
+          minute: 'numeric',
+        })}
+      </div>
+      ${
+        event.people && event.people.length > 0
+          ? `<div style="font-size: 10px; margin-top: 4px; opacity: 0.85;">
+              👥 ${event.people.join(', ')}
+            </div>`
+          : ''
+      }
+    </div>
+  `
+})
 
 calendar.render(calendarElement)
 

@@ -333,16 +333,15 @@ export default function TimeGridEvent({
               }}
             />
           )}
-
-          {$app.config.plugins.resize &&
-            !calendarEvent._options?.disableResize && (
-              <div
-                className={'sx__time-grid-event-resize-handle'}
-                onMouseDown={startResize}
-                onTouchStart={startResize}
-              />
-            )}
         </div>
+        {$app.config.plugins.resize &&
+          !calendarEvent._options?.disableResize && (
+            <div
+              className={'sx__time-grid-event-resize-handle'}
+              onMouseDown={startResize}
+              onTouchStart={startResize}
+            />
+          )}
       </div>
 
       {eventCopy && (

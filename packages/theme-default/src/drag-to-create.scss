@@ -1,14 +1,14 @@
 /* Drag-to-create plugin styles */
 .sx__drag-to-create-preview {
-  background: rgba(33, 0, 94, 0.5) !important;
-  border: 2px solid #21005e !important;
+  background: var(--sx-color-primary-container) !important;
+  border: 2px solid var(--sx-color-primary-container) !important;
   border-radius: 4px;
 }
 
 .sx__drag-to-create-preview .sx__event-title {
   padding: 4px 8px;
   font-weight: 500;
-  color: #21005e;
+  color: var(--sx-color-on-primary-container);
 }
 
 .sx__week-header-border {

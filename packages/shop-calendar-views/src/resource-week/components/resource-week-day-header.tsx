@@ -4,7 +4,7 @@ import { isToday } from '@schedule-x/shared/src/utils/stateless/time/comparison'
 import { toDateString } from '@schedule-x/shared/src'
 import { getDayNameShort } from '@schedule-x/shared/src/utils/stateless/time/date-time-localization/date-time-localization'
 import CalendarConfigInternal from '@schedule-x/shared/src/interfaces/calendar/calendar-config'
-import { Signal, useComputed, useSignal } from '@preact/signals'
+import { useSignal } from '@preact/signals'
 import { useRef, useEffect } from 'preact/hooks'
 
 type props = {
@@ -14,7 +14,6 @@ type props = {
   date: Temporal.ZonedDateTime
   idx: number
   minResourceColumnWidth: number
-  headerOffsetWidth: Signal<number>
 }
 
 export default function ResourceWeekDayHeader({
@@ -24,9 +23,9 @@ export default function ResourceWeekDayHeader({
   date,
   idx,
   minResourceColumnWidth,
-  headerOffsetWidth,
 }: props) {
   const resourceWeekDayGroupRef = useRef<HTMLDivElement>(null)
+
   const getClassNames = (date: Temporal.ZonedDateTime) => {
     const classNames = [
       'sx__week-grid__date',
@@ -39,30 +38,24 @@ export default function ResourceWeekDayHeader({
   }
 
   const dateElementRef = useRef<HTMLDivElement>(null)
-
-  // Signal to trigger recalculation on window resize
-  const resizeTrigger = useSignal(0)
+  const activateStickyDateElement = useSignal(false)
 
   useEffect(() => {
     const handleResize = () => {
-      resizeTrigger.value++
+      if (
+        resourceWeekDayGroupRef.current &&
+        window.innerWidth < resourceWeekDayGroupRef.current.clientWidth * 2.0
+      ) {
+        activateStickyDateElement.value = true
+      } else {
+        activateStickyDateElement.value = false
+      }
     }
 
     window.addEventListener('resize', handleResize)
+    handleResize()
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-
-  const gridDayNameContainerLeft = useComputed(() => {
-    // Include resizeTrigger to trigger recalculation on window resize
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _ = resizeTrigger.value
-
-    const halfOffset = headerOffsetWidth.value / 2
-    if (dateElementRef.current?.clientWidth) {
-      return halfOffset - dateElementRef.current.clientWidth / 2
-    }
-    return halfOffset
-  })
 
   return (
     <div
@@ -84,21 +77,25 @@ export default function ResourceWeekDayHeader({
           display: 'flex',
           flexDirection: 'row',
           borderBottom: 'var(--sx-border)',
-          padding: `8px ${(0.25 * headerOffsetWidth.value) / 2}px`,
+          padding: `8px 5vw`,
           borderLeft:
             idx > 0 ? `3px dashed var(--sx-color-outline-variant)` : 'none',
           borderImage:
-            'linear-gradient(to top, var(--sx-color-outline-variant), rgba(0, 0, 0, 0)) 1 100%',
+            'linear-gradient(to top, var(--sx-color-outline-variant), rgba(0, 0, 0, 0) 80%) 1 100%',
+          justifyContent: activateStickyDateElement.value
+            ? 'flex-start'
+            : 'center',
         }}
         data-index={idx}
       >
         <div
+          className="sx__week-grid__date-inner"
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            position: 'sticky',
-            left: `${gridDayNameContainerLeft}px`,
+            position: activateStickyDateElement.value ? 'sticky' : 'relative',
+            left: activateStickyDateElement.value ? '50%' : '0%',
           }}
           ref={dateElementRef}
         >

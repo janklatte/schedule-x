@@ -9,7 +9,6 @@ import { positionInTimeGrid } from '@schedule-x/calendar/src/utils/stateless/eve
 import { toIntegers } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/format-conversion'
 import ResourceWeekDayHeader from './resource-week-day-header'
 import { useRef, useEffect, useCallback } from 'preact/hooks'
-import { signal } from '@preact/signals'
 import { filterByRange } from '@schedule-x/calendar/src/utils/stateless/events/filter-by-range'
 
 export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
@@ -26,9 +25,6 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
   // Refs for scroll synchronization
   const headerScrollRef = useRef<HTMLDivElement>(null)
   const gridScrollRef = useRef<HTMLDivElement>(null)
-  const headerOffsetWidth = signal<number>(
-    headerScrollRef.current?.offsetWidth || 0
-  )
 
   const scrollToToday = useCallback(() => {
     const day = $app.datePickerState.selectedDate.value
@@ -48,10 +44,6 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
         behavior: 'auto',
       })
     }
-  }, [])
-
-  useEffect(() => {
-    headerOffsetWidth.value = headerScrollRef.current?.offsetWidth || 0
   }, [])
 
   // Synchronize scroll between header and grid
@@ -208,7 +200,6 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                           date={date}
                           idx={idx}
                           minResourceColumnWidth={MIN_RESOURCE_COLUMN_WIDTH}
-                          headerOffsetWidth={headerOffsetWidth}
                         />
                       )
                     })}
@@ -223,6 +214,7 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
 
           <div className="sx__week-grid">
             <div
+              className="sx__week-grid-scrollable"
               ref={gridScrollRef}
               style={{
                 overflowX: 'auto',
