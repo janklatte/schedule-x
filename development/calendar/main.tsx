@@ -188,6 +188,7 @@ const calendar = createCalendar({
       console.log('onEventUpdate', event)
       console.log('event.start', event.start.toString())
       console.log('event.end', event.end.toString())
+      console.log('event.resourceId', event.resourceId)
     },
 
     onEventClick(event, e) {
