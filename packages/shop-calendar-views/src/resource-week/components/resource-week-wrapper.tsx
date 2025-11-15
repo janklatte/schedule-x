@@ -12,11 +12,10 @@ import { useRef, useEffect, useCallback } from 'preact/hooks'
 import { filterByRange } from '@schedule-x/calendar/src/utils/stateless/events/filter-by-range'
 
 export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
-  // Set grid height
-  const sliderHeight = 12
+  // Set grid height - keep original value for accurate positioning calculations
   document.documentElement.style.setProperty(
     '--sx-week-grid-height',
-    `${$app.config.weekOptions.value.gridHeight + sliderHeight}px`
+    `${$app.config.weekOptions.value.gridHeight}px`
   )
 
   // Minimum width for each resource column (in pixels)
@@ -160,6 +159,9 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
           .sx__resource-week-date-axis::-webkit-scrollbar {
             display: none;
           }
+          .sx__resource-week-wrapper .sx__week-grid {
+            height: calc(var(--sx-week-grid-height) + 18px);
+          }
         `}</style>
         <div className="sx__resource-week-wrapper sx__week-wrapper" id={id}>
           {/* Header with date axis showing days and resources */}
@@ -227,7 +229,7 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
                   display: 'flex',
                   minWidth: '100%',
                   width: '100%',
-                  height: '100%',
+                  height: 'var(--sx-week-grid-height)',
                 }}
               >
                 <TimeAxis />
