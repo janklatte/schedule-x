@@ -7,4 +7,5 @@ export type BackgroundEvent = {
   title?: string
   rrule?: string
   exdate?: string[]
+  resourceId?: string
 }

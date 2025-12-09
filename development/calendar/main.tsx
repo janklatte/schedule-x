@@ -307,33 +307,7 @@ const calendar = createCalendar({
     gridHeight: 600,
     eventWidth: 95,
   },
-  backgroundEvents: [
-    {
-      title: 'Out of office',
-      start: Temporal.ZonedDateTime.from('2025-11-03T00:00:00[Europe/Berlin]'),
-      end: Temporal.ZonedDateTime.from('2025-11-03T12:00:00[Europe/Berlin]'),
-      style: {
-        // create tilted 5px thick gray lines
-        backgroundImage:
-          'repeating-linear-gradient(45deg, #ccc, #ccc 5px, transparent 5px, transparent 10px)',
-        opacity: 0.5,
-      },
-      // rrule: 'FREQ=WEEKLY',
-      // exdate: ['20250714T000000', '20250728T000000']
-    },
-
-    // PlainDate
-    {
-      title: 'Out of office 2',
-      start: Temporal.PlainDate.from('2025-07-09'),
-      end: Temporal.PlainDate.from('2025-07-10'),
-      style: {
-        backgroundImage:
-          'repeating-linear-gradient(45deg, #e3a, #e3a 5px, transparent 5px, transparent 10px)',
-        opacity: 0.5,
-      },
-    },
-  ],
+  backgroundEvents: [],
   locale: 'de-DE',
 
   // tz new york
@@ -386,6 +360,36 @@ calendar._setCustomComponentFn('timeGridEvent', (element, props) => {
 
 calendar.render(calendarElement)
 
+eventsServicePlugin.setBackgroundEvents([
+  {
+    title: 'Out of office',
+    start: Temporal.ZonedDateTime.from('2025-11-18T00:00:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-11-18T12:00:00[Europe/Berlin]'),
+    style: {
+      // create tilted 5px thick gray lines
+      backgroundImage:
+        'repeating-linear-gradient(45deg, #ccc, #ccc 5px, transparent 5px, transparent 10px)',
+      opacity: 0.5,
+    },
+    resourceId: 'asdf-1234',
+    // rrule: 'FREQ=WEEKLY',
+    // exdate: ['20250714T000000', '20250728T000000']
+  },
+  {
+    title: 'Out of office',
+    start: Temporal.ZonedDateTime.from('2025-11-18T00:00:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2025-11-18T14:00:00[Europe/Berlin]'),
+    style: {
+      // create tilted 5px thick gray lines
+      backgroundImage:
+        'repeating-linear-gradient(45deg, #ccc, #ccc 5px, transparent 5px, transparent 10px)',
+      opacity: 0.5,
+    },
+    resourceId: 'asdf-4321',
+    // rrule: 'FREQ=WEEKLY',
+    // exdate: ['20250714T000000', '20250728T000000']
+  },
+])
 // change timezone via calendarControlsPlugin
 const timezoneSelect = document.getElementById(
   'timezone-select'

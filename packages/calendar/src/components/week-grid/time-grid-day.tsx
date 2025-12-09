@@ -128,14 +128,17 @@ export default function TimeGridDay({
       onTouchEnd={handlePointerUp}
       onMouseDown={handleMouseDown}
     >
-      {backgroundEvents.map((event) => (
-        <>
-          <TimeGridBackgroundEvent
-            backgroundEvent={event}
-            date={date.toString()}
-          />
-        </>
-      ))}
+      {backgroundEvents.map(
+        (event) =>
+          (event.resourceId == resourceId || !event.resourceId) && (
+            <>
+              <TimeGridBackgroundEvent
+                backgroundEvent={event}
+                date={date.toString()}
+              />
+            </>
+          )
+      )}
 
       {eventsWithConcurrency.map((event) => (
         <TimeGridEvent
