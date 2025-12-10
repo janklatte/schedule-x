@@ -32,6 +32,7 @@ import { createDragToCreatePlugin } from '../../packages/drag-to-create/src'
 import {
   createViewResourceWeek,
   createViewResourceDay,
+  createViewResourceTimeline,
   createViewWeekAgenda,
 } from '../../packages/shop-calendar-views/src'
 
@@ -53,28 +54,28 @@ const dragToCreatePlugin = createDragToCreatePlugin({
 const resources = new Map([
   ['asdf-1234', 'Jimmy Doe'],
   ['asdf-4321', 'Jane Smith'],
-  // ['fdsa-4321', 'Ralle Rostfrei'],
-  // ['fdsa-1234', 'Ingo Injektor'],
-  // ['fdsa-5678', 'John Doe'],
-  // ['fdsa-9012', 'Marlene Kübler'],
-  // ['fdsa-3456', 'Rainer Zufall'],
-  // ['fdsa-7890', 'Felix Fuchs'],
-  // ['fdsa-0123', 'Hans Müller'],
-  // ['fdsa-4567', 'Maria Schmidt'],
-  // ['fdsa-8901', 'Peter Wagner'],
-  // ['fdsa-2345', 'Laura Meier'],
-  // ['fdsa-6789', 'Thomas Neumann'],
-  // ['fdsa-1011', 'Anna Becker'],
-  // ['fdsa-3212', 'Michael Fischer'],
-  // ['fdsa-5313', 'Sandra Klein'],
-  // ['fdsa-7414', 'Oliver Müller'],
-  // ['fdsa-9636', 'Julia Becker'],
-  // ['fdsa-1597', 'Markus Schmidt'],
-  // ['fdsa-3579', 'Thomas Wagner'],
-  // ['fdsa-2468', 'Laura Meier'],
-  // ['fdsa-1357', 'Thomas Neumann'],
-  // ['fdsa-0246', 'Anna Becker'],
-  // ['fdsa-9876', 'Michael Fischer'],
+  ['fdsa-4321', 'Ralle Rostfrei'],
+  ['fdsa-1234', 'Ingo Injektor'],
+  ['fdsa-5678', 'John Doe'],
+  ['fdsa-9012', 'Marlene Kübler'],
+  ['fdsa-3456', 'Rainer Zufall'],
+  ['fdsa-7890', 'Felix Fuchs'],
+  ['fdsa-0123', 'Hans Müller'],
+  ['fdsa-4567', 'Maria Schmidt'],
+  ['fdsa-8901', 'Peter Wagner'],
+  ['fdsa-2345', 'Laura Meier'],
+  ['fdsa-6789', 'Thomas Neumann'],
+  ['fdsa-1011', 'Anna Becker'],
+  ['fdsa-3212', 'Michael Fischer'],
+  ['fdsa-5313', 'Sandra Klein'],
+  ['fdsa-7414', 'Oliver Müller'],
+  ['fdsa-9636', 'Julia Becker'],
+  ['fdsa-1597', 'Markus Schmidt'],
+  ['fdsa-3579', 'Thomas Wagner'],
+  ['fdsa-2468', 'Laura Meier'],
+  ['fdsa-1357', 'Thomas Neumann'],
+  ['fdsa-0246', 'Anna Becker'],
+  ['fdsa-9876', 'Michael Fischer'],
 ])
 
 const events = [
@@ -124,14 +125,21 @@ const weekStart = currentDate.subtract({ days: daysToSubtract })
 
 // Generate events for each resource
 Array.from(resources.keys()).forEach((resourceId) => {
+  if (resourceId !== 'asdf-1234') return
   // For each day of the week (7 days)
   Array.from({ length: 7 }).forEach((_, dayIndex) => {
-    const currentDay = weekStart.add({ days: dayIndex })
+    // Only create events on Mondays (0), Wednesdays (2), and Fridays (4)
+    if (dayIndex !== 0 && dayIndex !== 2 && dayIndex !== 4) {
+      return
+    }
 
-    // Create 10 events for this resource on this day
+    const currentDay = weekStart.add({ days: dayIndex })
+    const nextDay = currentDay.add({ days: 1 })
+
+    // Create 1 event for this resource on this day
     Array.from({ length: 1 }).forEach((_, eventIndex) => {
       const startHour = 8 + eventIndex // Starting from 8:00
-      const endHour = startHour + 1
+      const endHour = 10 // End at 10:00 on the next day
 
       events.push({
         id: eventId++,
@@ -140,7 +148,7 @@ Array.from(resources.keys()).forEach((resourceId) => {
           `${currentDay}T${String(startHour).padStart(2, '0')}:00[Europe/Berlin]`
         ),
         end: Temporal.ZonedDateTime.from(
-          `${currentDay}T${String(endHour).padStart(2, '0')}:00[Europe/Berlin]`
+          `${nextDay}T${String(endHour).padStart(2, '0')}:00[Europe/Berlin]`
         ),
         resourceId: resourceId,
       })
@@ -177,8 +185,9 @@ const calendar = createCalendar({
     createViewResourceWeek(),
     createViewResourceDay(),
     createViewWeekAgenda(),
+    createViewResourceTimeline(),
   ],
-  defaultView: 'resource-week',
+  defaultView: 'resource-timeline',
   callbacks: {
     onScrollDayIntoView(date) {
       console.log('onScrollDayIntoView: ', date)
@@ -309,7 +318,7 @@ const calendar = createCalendar({
     },
   },
   minDate: Temporal.PlainDate.from('2025-08-13'),
-  maxDate: Temporal.PlainDate.from('2025-11-30'),
+  maxDate: Temporal.PlainDate.from('2025-12-31'),
   dayBoundaries: {
     start: '08:00',
     end: '19:00',
