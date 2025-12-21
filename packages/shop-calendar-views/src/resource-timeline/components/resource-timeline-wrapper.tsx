@@ -283,7 +283,6 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
             weekStart={weekStart}
             daysInWeek={daysInWeek}
             gridSteps={gridSteps}
-            minTimeColumnWidth={MIN_TIME_COLUMN_WIDTH}
             resourceRowHeight={RESOURCE_ROW_HEIGHT}
             weekWidth={weekWidth}
             $app={$app}

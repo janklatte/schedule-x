@@ -16,6 +16,7 @@ export type CustomComponentName =
   | 'weekGridHour'
   | 'monthGridDayName'
   | 'monthGridDate'
+  | 'resourceTimelineEvent'
   | string
 
 export type CustomComponentFns = {

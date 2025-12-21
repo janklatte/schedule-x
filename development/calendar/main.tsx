@@ -379,6 +379,45 @@ calendar._setCustomComponentFn('timeGridEvent', (element, props) => {
   `
 })
 
+// // Set custom event component for resource timeline events
+// calendar._setCustomComponentFn('resourceTimelineEvent', (element, props) => {
+//   if (!element) return
+
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   const event = props.calendarEvent as any
+
+//   // Create custom styled timeline event
+//   element.innerHTML = `
+//     <div style="
+//       padding: 4px 8px;
+//       background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+//       color: white;
+//       height: 100%;
+//       width: 100%;
+//       border-left: 4px solid #ff6b6b;
+//       border-radius: 4px;
+//       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+//       font-family: 'Open Sans', sans-serif;
+//       display: flex;
+//       flex-direction: row;
+//       justify-content: center;
+//     ">
+//       <div style="font-weight: 600; font-size: 12px; margin-bottom: 2px;">
+//         📅 ${event.title}
+//       </div>
+//       <div style="font-size: 10px; opacity: 0.9;">
+//         ${event.start.toLocaleString('en-US', {
+//           hour: 'numeric',
+//           minute: 'numeric',
+//         })} - ${event.end.toLocaleString('en-US', {
+//           hour: 'numeric',
+//           minute: 'numeric',
+//         })}
+//       </div>
+//     </div>
+//   `
+// })
+
 calendar.render(calendarElement)
 
 eventsServicePlugin.setBackgroundEvents([

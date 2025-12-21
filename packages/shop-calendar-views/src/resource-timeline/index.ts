@@ -6,7 +6,7 @@ import { addDays } from '@schedule-x/shared/src/utils/stateless/time/date-time-m
 
 const config = {
   name: InternalViewName.ResourceTimeline,
-  label: 'ResourceTimeline',
+  label: 'Zeitleiste',
   Component: ResourceTimelineWrapper,
   hasWideScreenCompat: true,
   hasSmallScreenCompat: false,

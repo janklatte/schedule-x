@@ -14,7 +14,6 @@ type props = {
   weekStart: Temporal.ZonedDateTime | null
   daysInWeek: number
   gridSteps: Array<{ hour: number; minute: number }>
-  minTimeColumnWidth: number
   resourceRowHeight: number
   weekWidth: number
   $app: CalendarAppSingleton
@@ -28,7 +27,6 @@ export default function ResourceTimelineGrid({
   weekStart,
   daysInWeek,
   gridSteps,
-  minTimeColumnWidth,
   resourceRowHeight,
   weekWidth,
   $app,
@@ -126,7 +124,6 @@ export default function ResourceTimelineGrid({
                       weekStart={weekStart}
                       daysInWeek={daysInWeek}
                       gridSteps={gridSteps}
-                      minTimeColumnWidth={minTimeColumnWidth}
                       resourceRowHeight={resourceRowHeight}
                       $app={$app}
                       dayBoundariesMap={dayBoundariesMap}
