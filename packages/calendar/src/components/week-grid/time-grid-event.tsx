@@ -21,6 +21,7 @@ import { getCCID } from './time-grid-event-utils'
 import { getElementByCCID } from '../../utils/stateless/dom/getters'
 import { invokeOnEventClickCallback } from '../../utils/stateless/events/invoke-on-event-click-callback'
 import { invokeOnEventDoubleClickCallback } from '../../utils/stateless/events/invoke-on-event-double-click-callback'
+import { invokeOnEventContextMenuCallback } from '../../utils/stateless/events/invoke-on-event-context-menu-callback'
 import { getEventCoordinates } from '@schedule-x/shared/src/utils/stateless/dom/get-event-coordinates'
 import { isUIEventTouchEvent } from '@schedule-x/shared/src/utils/stateless/dom/is-touch-event'
 import { getYCoordinateInTimeGrid } from '@schedule-x/shared/src/utils/stateless/calendar/get-y-coordinate-in-time-grid'
@@ -156,6 +157,11 @@ export default function TimeGridEvent({
     invokeOnEventDoubleClickCallback($app, calendarEvent, e)
   }
 
+  const handleOnContextMenu = (e: MouseEvent) => {
+    e.stopPropagation()
+    invokeOnEventContextMenuCallback($app, calendarEvent, e)
+  }
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.stopPropagation()
@@ -168,6 +174,10 @@ export default function TimeGridEvent({
   }
 
   const startResize = (e: MouseEvent | TouchEvent) => {
+    // Don't start resizing if right mouse button is clicked
+    if (e instanceof MouseEvent && e.button === 2) {
+      return
+    }
     setMouseDown(true)
     e.stopPropagation()
 
@@ -201,6 +211,10 @@ export default function TimeGridEvent({
     classNames.push(...calendarEvent._options.additionalClasses)
 
   const handlePointerDown = (e: UIEvent) => {
+    // Don't start dragging if right mouse button is clicked
+    if (!isUIEventTouchEvent(e) && (e as MouseEvent).button === 2) {
+      return
+    }
     setMouseDown(true)
     createDragStartTimeout(handleStartDrag, e)
   }
@@ -230,6 +244,7 @@ export default function TimeGridEvent({
         }
         data-event-id={calendarEvent.id}
         onClick={handleOnClick}
+        onContextMenu={handleOnContextMenu}
         onDblClick={handleOnDoubleClick}
         onKeyDown={handleKeyDown}
         onMouseDown={handlePointerDown}

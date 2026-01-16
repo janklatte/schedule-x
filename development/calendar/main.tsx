@@ -240,6 +240,10 @@ const calendar = createCalendar({
     onWeekAgendaDayClick(event) {
       console.log('onWeekAgendaDayClick', event)
     },
+
+    onEventContextMenu(event, e) {
+      console.log('onEventContextMenu', event, e)
+    },
   },
   // selectedDate: Temporal.PlainDate.from({ year: 2024, month: 2, day: 5 }),
   calendars: {

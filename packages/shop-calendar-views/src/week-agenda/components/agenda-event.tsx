@@ -109,6 +109,10 @@ export default function AgendaEvent({
   const hasCustomContent = calendarEvent._customContent?.timeGrid
 
   const handlePointerDown = (e: UIEvent) => {
+    // Don't start dragging if right mouse button is clicked
+    if (!isUIEventTouchEvent(e) && (e as MouseEvent).button === 2) {
+      return
+    }
     if (setMouseDown) setMouseDown(true)
     createDragStartTimeout(handleStartDrag, e)
   }

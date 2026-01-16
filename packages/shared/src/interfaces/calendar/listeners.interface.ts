@@ -4,6 +4,7 @@ import CalendarAppSingleton from './calendar-app-singleton'
 
 export interface CalendarCallbacks {
   onEventClick?: (event: CalendarEventExternal, e: UIEvent) => void
+  onEventContextMenu?: (event: CalendarEventExternal, e: UIEvent) => void
   onDoubleClickEvent?: (event: CalendarEventExternal, e: UIEvent) => void
   onRangeUpdate?: (range: DateRange) => void
   onSelectedDateUpdate?: (date: Temporal.PlainDate) => void
