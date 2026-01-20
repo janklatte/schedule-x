@@ -11,6 +11,11 @@ export interface CalendarCallbacks {
   onClickDate?: (date: Temporal.PlainDate, e?: UIEvent) => void
   onDoubleClickDate?: (date: Temporal.PlainDate, e?: UIEvent) => void
   onClickDateTime?: (dateTime: Temporal.ZonedDateTime, e?: UIEvent) => void
+  onContextMenuDateTime?: (
+    dateTime: Temporal.ZonedDateTime,
+    e?: UIEvent,
+    resourceId?: string
+  ) => void
   onDoubleClickDateTime?: (
     dateTime: Temporal.ZonedDateTime,
     e?: UIEvent
@@ -32,6 +37,7 @@ export interface CalendarCallbacks {
   ) => void
   onScrollDayIntoView?: (date: Temporal.PlainDate) => void
   onWeekAgendaDayClick?: (date: Temporal.ZonedDateTime) => void
+  onContextMenuWeekAgendaDate?: (date: Temporal.PlainDate, e?: UIEvent) => void
 
   /**
    * Run a validator function before updating an event.

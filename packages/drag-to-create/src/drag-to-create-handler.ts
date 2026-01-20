@@ -63,6 +63,11 @@ export default class DragToCreateHandler {
   private handleMouseDown = (e: UIEvent): void => {
     if (!this.enabled) return
 
+    // Don't start dragging if right mouse button is clicked
+    if (e instanceof MouseEvent && e.button === 2) {
+      return
+    }
+
     const target = e.target as HTMLElement
 
     // Only start drag on time-grid-day or date-grid-day elements (empty space)

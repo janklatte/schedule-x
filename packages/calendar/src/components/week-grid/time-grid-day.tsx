@@ -83,6 +83,16 @@ export default function TimeGridDay({
     }
   }
 
+  const handleOnContextMenu = (e: MouseEvent) => {
+    const callback = $app.config.callbacks.onContextMenuDateTime
+    if (!callback || mouseDownOnChild) return
+
+    const clickDateTime = getClickDateTime(e, $app, dayStartDateTime)
+    if (clickDateTime) {
+      callback(clickDateTime, e, resourceId)
+    }
+  }
+
   const handleMouseDown = (e: MouseEvent) => {
     const callback = $app.config.callbacks.onMouseDownDateTime
     if (!callback || mouseDownOnChild) return
@@ -122,6 +132,7 @@ export default function TimeGridDay({
       onDblClick={(e) =>
         handleOnClick(e, $app.config.callbacks.onDoubleClickDateTime)
       }
+      onContextMenu={handleOnContextMenu}
       aria-label={getLocalizedDate(date, $app.config.locale.value)}
       onMouseLeave={() => setMouseDownOnChild(false)}
       onMouseUp={handlePointerUp}

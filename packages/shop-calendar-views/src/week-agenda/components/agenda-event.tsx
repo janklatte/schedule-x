@@ -6,6 +6,7 @@ import LocationPinIcon from '@schedule-x/shared/src/components/icons/location-pi
 import UserIcon from '@schedule-x/shared/src/components/icons/user-icon'
 import { concatenatePeople } from '@schedule-x/shared/src/utils/stateless/strings/concatenate-people'
 import { invokeOnEventClickCallback } from '@schedule-x/calendar/src/utils/stateless/events/invoke-on-event-click-callback'
+import { invokeOnEventContextMenuCallback } from '@schedule-x/calendar/src/utils/stateless/events/invoke-on-event-context-menu-callback'
 import { getCCID } from '@schedule-x/calendar/src/components/week-grid/time-grid-event-utils'
 import { getElementByCCID } from '@schedule-x/calendar/src/utils/stateless/dom/getters'
 import { Fragment } from 'preact'
@@ -87,6 +88,11 @@ export default function AgendaEvent({
     invokeOnEventClickCallback($app, calendarEvent, e)
   }
 
+  const handleContextMenu = (e: MouseEvent) => {
+    e.stopPropagation()
+    invokeOnEventContextMenuCallback($app, calendarEvent, e)
+  }
+
   const hasLocation = calendarEvent.location
 
   const customComponent = $app.config._customComponentFns.timeGridEvent
@@ -158,6 +164,7 @@ export default function AgendaEvent({
           width: isCopy ? 'calc(100% - 12px)' : undefined,
         }}
         onClick={handleClick}
+        onContextMenu={handleContextMenu}
         onMouseDown={handlePointerDown}
         onMouseUp={handlePointerUp}
         onTouchStart={handlePointerDown}

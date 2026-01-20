@@ -244,6 +244,14 @@ const calendar = createCalendar({
     onEventContextMenu(event, e) {
       console.log('onEventContextMenu', event, e)
     },
+
+    onContextMenuDateTime(event, e) {
+      console.log('onContextMenuDateTime', event, e)
+    },
+
+    onContextMenuWeekAgendaDate(date, e) {
+      console.log('onContextMenuWeekAgendaDate', date, e)
+    },
   },
   // selectedDate: Temporal.PlainDate.from({ year: 2024, month: 2, day: 5 }),
   calendars: {
