@@ -20,7 +20,8 @@ export default function useEventInteractions($app: CalendarAppSingleton) {
     callback: (uiEvent: UIEvent) => void,
     uiEvent: UIEvent
   ) => {
-    setDragStartTimeout(setTimeout(() => callback(uiEvent), 150))
+    // Increased this to 300ms so that drags are not confused with event clicks
+    setDragStartTimeout(setTimeout(() => callback(uiEvent), 300))
   }
 
   const setClickedEvent = (
