@@ -7,6 +7,7 @@ import { DateGridEventResizer } from './date-grid-event-resizer'
 import { definePlugin } from '@schedule-x/shared/src/utils/stateless/calendar/define-plugin'
 import { getEventCoordinates } from '@schedule-x/shared/src/utils/stateless/dom/get-event-coordinates'
 import { DateRange } from '@schedule-x/shared/src/types/date-range'
+import { TimelineEventResizer } from './timeline-event-resizer'
 
 class ResizePluginImpl implements ResizePlugin {
   name = PluginName.Resize
@@ -48,6 +49,23 @@ class ResizePluginImpl implements ResizePlugin {
 
     const { clientX } = getEventCoordinates(uiEvent)
     new DateGridEventResizer(this.$app, calendarEvent, updateCopy, clientX)
+  }
+
+  createTimelineEventResizer(
+    calendarEvent: CalendarEventInternal,
+    updateCopy: (newCopy: CalendarEventInternal | undefined) => void,
+    uiEvent: MouseEvent | TouchEvent
+  ) {
+    if (!this.$app) return this.logError()
+
+    const { clientX } = getEventCoordinates(uiEvent)
+    new TimelineEventResizer(
+      this.$app,
+      calendarEvent,
+      updateCopy,
+      clientX,
+      this.getTimePointsForIntervalConfig()
+    )
   }
 
   private getTimePointsForIntervalConfig(): number {

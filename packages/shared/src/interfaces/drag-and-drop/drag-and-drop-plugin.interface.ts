@@ -6,6 +6,7 @@ import DragHandlerDependencies from './drag-handler-dependencies.interface'
 import MonthGridDragHandler from './month-grid-drag-handler.interface'
 import CalendarAppSingleton from '../calendar/calendar-app-singleton'
 import { CalendarEventInternal } from '../calendar/calendar-event.interface'
+import TimelineDragHandler from './timeline-drag-handler.interface'
 
 export default interface DragAndDropPlugin extends PluginBase<string> {
   createTimeGridDragHandler(
@@ -21,6 +22,10 @@ export default interface DragAndDropPlugin extends PluginBase<string> {
     calendarEvent: CalendarEventInternal,
     $app: CalendarAppSingleton
   ): MonthGridDragHandler
+
+  createTimelineDragHandler(
+    dependencies: DragHandlerDependencies
+  ): TimelineDragHandler
 
   setInterval(minutes: number): void
 }

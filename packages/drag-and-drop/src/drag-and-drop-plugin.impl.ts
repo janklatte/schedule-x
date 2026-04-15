@@ -11,6 +11,8 @@ import CalendarAppSingleton from '@schedule-x/shared/src/interfaces/calendar/cal
 import TimeGridDragHandler from '@schedule-x/shared/src/interfaces/drag-and-drop/time-grid-drag-handler.interface'
 import DragHandlerDependencies from '@schedule-x/shared/src/interfaces/drag-and-drop/drag-handler-dependencies.interface'
 import { definePlugin } from '@schedule-x/shared/src/utils/stateless/calendar/define-plugin'
+import TimelineDragHandler from '@schedule-x/shared/src/interfaces/drag-and-drop/timeline-drag-handler.interface'
+import TimelineDragHandlerImpl from './timeline-drag-handler.impl'
 
 class DragAndDropPluginImpl implements DragAndDropPlugin {
   name = PluginName.DragAndDrop
@@ -79,6 +81,18 @@ class DragAndDropPluginImpl implements DragAndDropPlugin {
     $app: CalendarAppSingleton
   ): MonthGridDragHandler {
     return new MonthGridDragHandlerImpl(calendarEvent, $app)
+  }
+
+  createTimelineDragHandler(
+    dependencies: DragHandlerDependencies
+  ): TimelineDragHandler {
+    return new TimelineDragHandlerImpl(
+      dependencies.$app,
+      dependencies.eventCoordinates,
+      dependencies.eventCopy,
+      dependencies.updateCopy,
+      this.getTimePointsForIntervalConfig()
+    )
   }
 }
 

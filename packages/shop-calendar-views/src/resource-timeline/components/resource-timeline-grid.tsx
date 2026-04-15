@@ -1,6 +1,8 @@
 import { RefObject } from 'preact'
+import { useState, useCallback } from 'preact/hooks'
 import { CalendarAppSingleton } from '@schedule-x/shared/src'
 import { WeekDay } from '@schedule-x/calendar/src/types/week'
+import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 import ResourceTimelineRow from './resource-timeline-row'
 import {
   getXCoordinateInTimeline,
@@ -33,6 +35,17 @@ export default function ResourceTimelineGrid({
   gridScrollRef,
   resourceNamesRef,
 }: props) {
+  const [copyState, setCopyState] = useState<{
+    event: CalendarEventInternal | undefined
+    version: number
+  }>({ event: undefined, version: 0 })
+
+  const copyEvent = copyState.event
+
+  const updateCopy = useCallback((copy: CalendarEventInternal | undefined) => {
+    setCopyState((prev) => ({ event: copy, version: prev.version + 1 }))
+  }, [])
+
   return (
     <div
       className="sx__resource-timeline-grid"
@@ -124,11 +137,17 @@ export default function ResourceTimelineGrid({
                       weekStart={weekStart}
                       daysInWeek={daysInWeek}
                       gridSteps={gridSteps}
-                      resourceRowHeight={resourceRowHeight}
                       $app={$app}
                       dayBoundariesMap={dayBoundariesMap}
                       getXCoordinateInTimeline={getXCoordinateInTimeline}
                       getEventWidthInTimeline={getEventWidthInTimeline}
+                      copyEvent={
+                        copyEvent?.resourceId === person.id
+                          ? copyEvent
+                          : undefined
+                      }
+                      draggingEventId={copyEvent?.id}
+                      updateCopy={updateCopy}
                     />
                   ))
                 })()

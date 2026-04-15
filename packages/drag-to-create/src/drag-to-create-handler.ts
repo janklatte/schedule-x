@@ -5,6 +5,7 @@ import { randomStringId } from '@schedule-x/shared/src/utils/stateless/strings/r
 import { addTimePointsToDateTime } from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
 import CalendarEventExternal from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 import { getEventCoordinates } from '@schedule-x/shared/src/utils/stateless/dom/get-event-coordinates'
+import { DateRange } from '@schedule-x/shared/src/types/date-range'
 
 /**
  * Handles the drag-to-create interaction logic
@@ -20,6 +21,14 @@ export default class DragToCreateHandler {
   private dragStartElement: HTMLElement | null = null
   private dragStartResourceId: string | undefined = undefined
   private eventWidth: number = 100
+
+  // Timeline-specific state
+  private isTimelineDrag = false
+  private timelineDragStartXFraction: number | null = null
+  private timelineDragEndXFraction: number | null = null
+  private timelineScrollEl: HTMLElement | null = null
+  private timelineInnerEl: HTMLElement | null = null
+  private timelinePreviewRow: HTMLElement | null = null
 
   constructor(
     private $app: CalendarAppSingleton,
@@ -70,6 +79,37 @@ export default class DragToCreateHandler {
 
     const target = e.target as HTMLElement
 
+    // Check for timeline row first (before time-grid/date-grid check)
+    const timelineRow = target.closest(
+      '.sx__resource-timeline-row'
+    ) as HTMLElement | null
+    const isTimelineRow = !!timelineRow && !target.closest('[data-event-id]')
+
+    if (isTimelineRow && timelineRow) {
+      const calendarWrapper = this.$app.elements.calendarWrapper as HTMLElement
+      const gridScrollable = calendarWrapper.querySelector(
+        '.sx__resource-timeline-grid-scrollable'
+      ) as HTMLElement
+      this.timelineScrollEl = gridScrollable?.children[1] as HTMLElement
+      this.timelineInnerEl = this.timelineScrollEl
+        ?.firstElementChild as HTMLElement
+
+      if (!this.timelineScrollEl || !this.timelineInnerEl) return
+
+      this.isTimelineDrag = true
+      this.timelinePreviewRow = timelineRow
+      this.dragStartResourceId = timelineRow.dataset.personId
+
+      const { fraction, dateTime } = this.getTimeAndFractionFromTimeline(e)
+      this.dragStartTime = dateTime
+      this.dragEndTime = dateTime
+      this.timelineDragStartXFraction = fraction
+      this.timelineDragEndXFraction = fraction
+      this.isDragging = true
+      e.preventDefault()
+      return
+    }
+
     // Only start drag on time-grid-day or date-grid-day elements (empty space)
     const isTimeGridDay = target.classList.contains('sx__time-grid-day')
     const isDateGridDay = target.classList.contains('sx__date-grid-day')
@@ -101,6 +141,15 @@ export default class DragToCreateHandler {
   private handleMouseMove = (e: UIEvent): void => {
     if (!this.isDragging || !this.dragStartTime) return
 
+    // Handle timeline drag branch
+    if (this.isTimelineDrag) {
+      const { fraction, dateTime } = this.getTimeAndFractionFromTimeline(e)
+      this.dragEndTime = dateTime
+      this.timelineDragEndXFraction = fraction
+      this.updateTimelinePreview()
+      return
+    }
+
     const { clientX, clientY } = getEventCoordinates(e)
     const target = document.elementFromPoint(clientX, clientY) as HTMLElement
     if (!target) return
@@ -126,6 +175,97 @@ export default class DragToCreateHandler {
     }
 
     this.cancelDrag()
+  }
+
+  /**
+   * Get the X fraction and dateTime from a timeline mouse position
+   */
+  private getTimeAndFractionFromTimeline(e: UIEvent): {
+    fraction: number
+    dateTime: Temporal.ZonedDateTime
+  } {
+    const { clientX } = getEventCoordinates(e)
+    const scrollEl = this.timelineScrollEl!
+    const innerEl = this.timelineInnerEl!
+
+    const scrollRect = scrollEl.getBoundingClientRect()
+    const contentX = clientX - scrollRect.left + scrollEl.scrollLeft
+    const fraction = Math.max(0, Math.min(1, contentX / innerEl.scrollWidth))
+
+    const range = this.$app.calendarState.range.value as DateRange
+    const daysInWeek =
+      range.start.toPlainDate().until(range.end.toPlainDate()).days + 1
+    const weekStart = range.start
+      .toPlainDate()
+      .toZonedDateTime(this.$app.config.timezone.value)
+
+    const dayStartTP = this.$app.config.dayBoundaries.value.start
+    const timePointsPerDay = this.$app.config.timePointsPerDay
+    const gridStep = this.$app.config.weekOptions.value.gridStep
+    const intervalTP = gridStep * (100 / 60)
+
+    const totalTP = daysInWeek * timePointsPerDay
+    const rawTP = fraction * totalTP
+    const snappedTP = Math.round(rawTP / intervalTP) * intervalTP
+    const clampedTP = Math.max(0, Math.min(totalTP, snappedTP))
+
+    const dayOffset = Math.min(
+      Math.floor(clampedTP / timePointsPerDay),
+      daysInWeek - 1
+    )
+    const tpInDay = (clampedTP % timePointsPerDay) + dayStartTP
+
+    const dayStart = weekStart
+      .add({ days: dayOffset })
+      .toPlainDate()
+      .toZonedDateTime(this.$app.config.timezone.value)
+    const dateTime = addTimePointsToDateTime(dayStart, tpInDay)
+
+    return { fraction, dateTime }
+  }
+
+  /**
+   * Update the visual preview for timeline drag-to-create
+   */
+  private updateTimelinePreview(): void {
+    if (
+      this.timelineDragStartXFraction === null ||
+      this.timelineDragEndXFraction === null ||
+      !this.timelinePreviewRow
+    )
+      return
+
+    const startFraction = Math.min(
+      this.timelineDragStartXFraction,
+      this.timelineDragEndXFraction
+    )
+    const endFraction = Math.max(
+      this.timelineDragStartXFraction,
+      this.timelineDragEndXFraction
+    )
+
+    if (!this.previewElement) {
+      this.previewElement = document.createElement('div')
+      this.previewElement.className = 'sx__drag-to-create-preview sx__event'
+      this.previewElement.style.position = 'absolute'
+      this.previewElement.style.pointerEvents = 'none'
+      this.previewElement.style.opacity = '0.5'
+      this.previewElement.style.zIndex = '1000'
+      this.previewElement.style.top = '2px'
+      this.previewElement.style.height = 'calc(100% - 4px)'
+      this.previewElement.style.borderRadius = '2px'
+      this.timelinePreviewRow.appendChild(this.previewElement)
+    }
+
+    const leftPct = startFraction * 100
+    const widthPct = Math.max(0, (endFraction - startFraction) * 100)
+
+    this.previewElement.style.left = `${leftPct}%`
+    this.previewElement.style.width = `${widthPct}%`
+
+    if (this.dragStartTime && this.dragEndTime) {
+      this.previewElement.innerHTML = `<div style="padding: 2px 4px; font-size: var(--sx-font-extra-small);">${this.getEventTime(this.dragStartTime, this.dragEndTime)}</div>`
+    }
   }
 
   /**
@@ -199,7 +339,7 @@ export default class DragToCreateHandler {
   }
 
   /**
-   * Update the visual preview of the drag
+   * Update the visual preview of the drag (time-grid version)
    */
   private updatePreview(): void {
     if (
@@ -283,9 +423,17 @@ export default class DragToCreateHandler {
    */
   private cancelDrag(): void {
     this.isDragging = false
+    this.isTimelineDrag = false
+    this.timelineDragStartXFraction = null
+    this.timelineDragEndXFraction = null
+    this.timelineScrollEl = null
+    this.timelineInnerEl = null
+    this.timelinePreviewRow = null
     this.dragStartTime = null
     this.dragEndTime = null
     this.dragStartElement = null
+    this.dragStartPercentageOfDay = null
+    this.dragEndPercentageOfDay = null
 
     if (this.previewElement) {
       this.previewElement.remove()
