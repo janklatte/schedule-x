@@ -7,6 +7,7 @@ import { CalendarAppSingleton } from '@schedule-x/shared/src'
 import { toIntegers } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/format-conversion'
 import { timeStringFromTimePoints } from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
 import { addDays } from '@schedule-x/shared/src/utils/stateless/time/date-time-mutation/adding'
+import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 
 // Helper function to get X coordinate (left position) for timeline view
 export const getXCoordinateInTimeline = (
@@ -125,4 +126,118 @@ export const createDayBoundariesMap = (
     map.set(day.date, { start: dayStartDateTime, end: dayEndDateTime })
   })
   return map
+}
+
+/**
+ * Clamps a multi-day timed event to the visible week range, returning a shallow
+ * clone with adjusted start/end. Returns null when the event has no overlap
+ * with the range at all.
+ */
+export const clampEventToRange = (
+  event: CalendarEventInternal,
+  rangeStart: Temporal.ZonedDateTime,
+  rangeEnd: Temporal.ZonedDateTime
+): CalendarEventInternal | null => {
+  const eventStart = event.start as Temporal.ZonedDateTime
+  const eventEnd = event.end as Temporal.ZonedDateTime
+
+  if (
+    Temporal.ZonedDateTime.compare(eventEnd, rangeStart) <= 0 ||
+    Temporal.ZonedDateTime.compare(eventStart, rangeEnd) >= 0
+  ) {
+    return null
+  }
+
+  const clampedStart =
+    Temporal.ZonedDateTime.compare(eventStart, rangeStart) < 0
+      ? rangeStart
+      : eventStart
+
+  const clampedEnd =
+    Temporal.ZonedDateTime.compare(eventEnd, rangeEnd) > 0 ? rangeEnd : eventEnd
+
+  return { ...event, start: clampedStart, end: clampedEnd }
+}
+
+/**
+ * Assigns vertical slots to resource timeline events for overlap rendering.
+ *
+ * Unlike handleEventConcurrency (which groups events into cliques), this uses a
+ * lane-assignment approach that correctly handles chain-overlapping events, e.g.:
+ *   A(9-11), B(10-12), C(11-13): A doesn't overlap C, but B overlaps both.
+ *   Result: A→slot 0, B→slot 1, C→slot 0 (C fits in the gap left by A).
+ *
+ * Sets _previousConcurrentEvents = assigned slot index,
+ *      _totalConcurrentEvents = _maxConcurrentEvents = max simultaneous lanes
+ *      during this event's span (used by ResourceTimelineEvent for top/height%).
+ */
+export const assignTimelineEventSlots = (
+  events: CalendarEventInternal[]
+): CalendarEventInternal[] => {
+  if (events.length === 0) return events
+
+  const sorted = [...events].sort((a, b) => {
+    const aStart = (a.start as Temporal.ZonedDateTime).epochNanoseconds
+    const bStart = (b.start as Temporal.ZonedDateTime).epochNanoseconds
+    if (aStart < bStart) return -1
+    if (aStart > bStart) return 1
+    // Longer events first when starting at the same time
+    const aEnd = (a.end as Temporal.ZonedDateTime).epochNanoseconds
+    const bEnd = (b.end as Temporal.ZonedDateTime).epochNanoseconds
+    if (aEnd > bEnd) return -1
+    if (aEnd < bEnd) return 1
+    return 0
+  })
+
+  // Each entry is the end time (epochNanoseconds) of the last event in that lane
+  const laneEnds: bigint[] = []
+  const eventSlot = new Map<CalendarEventInternal, number>()
+
+  for (const event of sorted) {
+    const startNs = (event.start as Temporal.ZonedDateTime).epochNanoseconds
+    const endNs = (event.end as Temporal.ZonedDateTime).epochNanoseconds
+
+    // Find the first lane whose last event ends at or before this event's start
+    let slot = -1
+    for (let i = 0; i < laneEnds.length; i++) {
+      if (laneEnds[i] <= startNs) {
+        slot = i
+        laneEnds[i] = endNs
+        break
+      }
+    }
+
+    if (slot === -1) {
+      slot = laneEnds.length
+      laneEnds.push(endNs)
+    }
+
+    eventSlot.set(event, slot)
+  }
+
+  // For each event, determine how many simultaneous lanes are needed across its span
+  for (const event of sorted) {
+    const slot = eventSlot.get(event)!
+    const startNs = (event.start as Temporal.ZonedDateTime).epochNanoseconds
+    const endNs = (event.end as Temporal.ZonedDateTime).epochNanoseconds
+
+    let maxSlot = 0
+    for (const other of sorted) {
+      const otherStart = (other.start as Temporal.ZonedDateTime)
+        .epochNanoseconds
+      const otherEnd = (other.end as Temporal.ZonedDateTime).epochNanoseconds
+      // Strict overlap: intervals must actually intersect (touching end-to-start is not overlap)
+      if (otherStart < endNs && otherEnd > startNs) {
+        const otherSlot = eventSlot.get(other)!
+        if (otherSlot > maxSlot) maxSlot = otherSlot
+      }
+    }
+
+    const maxSimultaneous = maxSlot + 1
+    event._previousConcurrentEvents = slot
+    event._totalConcurrentEvents = maxSimultaneous
+    event._maxConcurrentEvents = maxSimultaneous
+  }
+
+  return sorted
 }

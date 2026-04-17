@@ -1,9 +1,15 @@
+import { useMemo } from 'preact/hooks'
 import { CalendarAppSingleton } from '@schedule-x/shared/src'
 import { DayBoundariesDateTime } from '@schedule-x/shared/src/types/day-boundaries-date-time'
 import { WeekDay } from '@schedule-x/calendar/src/types/week'
 import { DayBoundariesInternal } from '@schedule-x/shared/src/types/calendar/day-boundaries'
 import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 import ResourceTimelineEvent from './resource-timeline-event'
+import { assignTimelineEventSlots } from './timeline-helpers'
+import {
+  timePointsFromString,
+  timeStringFromTimePoints,
+} from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
 
 type props = {
   person: { id: string; name: string }
@@ -46,8 +52,16 @@ export default function ResourceTimelineRow({
   draggingEventId,
   updateCopy,
 }: props) {
-  const personEvents = weekDays.flatMap((day) =>
-    day.timeGridEvents.filter((event) => event.resourceId?.includes(person.id))
+  const eventsWithConcurrency = useMemo(
+    () =>
+      assignTimelineEventSlots(
+        weekDays.flatMap((day) =>
+          day.timeGridEvents.filter((event) =>
+            event.resourceId?.includes(person.id)
+          )
+        )
+      ),
+    [weekDays]
   )
 
   return (
@@ -102,7 +116,7 @@ export default function ResourceTimelineRow({
             (event) => event.resourceId === person.id || !event.resourceId
           )
           .map((event, bgEventIdx) => {
-            const eventStart =
+            let eventStart =
               event.start instanceof Temporal.ZonedDateTime
                 ? event.start
                 : event.start.toZonedDateTime($app.config.timezone.value)
@@ -114,6 +128,27 @@ export default function ResourceTimelineRow({
                     minute: 59,
                     second: 59,
                   })
+
+            // Clamp start to day boundary
+            const startHour = eventStart.hour
+            const startMinute = eventStart.minute
+            const formattedStart = `${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}`
+            const startTimePoints = timePointsFromString(formattedStart)
+            if (startTimePoints < $app.config.dayBoundaries.value.start) {
+              const updatedStart = timeStringFromTimePoints(
+                $app.config.dayBoundaries.value.start
+              )
+              const [updatedStartHour, updatedStartMinute] =
+                updatedStart.split(':')
+              eventStart = eventStart.with({
+                hour: +updatedStartHour,
+                minute: +updatedStartMinute,
+                second: 0,
+              })
+            }
+
+            if (eventStart.toString() === eventEnd.toString()) return null
+
             const left = getXCoordinateInTimeline(
               eventStart,
               weekStart,
@@ -137,18 +172,15 @@ export default function ResourceTimelineRow({
                   width: `${width}%`,
                   top: 0,
                   height: '100%',
-                  backgroundColor:
-                    event.style?.backgroundColor ||
-                    'var(--sx-color-surface-variant)',
-                  opacity: 0.3,
                   zIndex: 0,
+                  ...event.style,
                 }}
               />
             )
           })
       )}
 
-      {personEvents.map((event) => {
+      {eventsWithConcurrency.map((event) => {
         if (draggingEventId === event.id) return null
         return (
           <ResourceTimelineEvent

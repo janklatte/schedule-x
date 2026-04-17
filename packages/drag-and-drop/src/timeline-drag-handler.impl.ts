@@ -2,18 +2,21 @@ import CalendarAppSingleton from '@schedule-x/shared/src/interfaces/calendar/cal
 import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 import { EventCoordinates } from '@schedule-x/shared/src/interfaces/shared/event-coordinates'
 import { getEventCoordinates } from '@schedule-x/shared/src/utils/stateless/dom/get-event-coordinates'
-import { addTimePointsToDateTime } from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
+import {
+  addTimePointsToDateTime,
+  timePointsFromString,
+} from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
+import { timeFromDateTime } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/string-to-string'
 import { DateRange } from '@schedule-x/shared/src/types/date-range'
 import { testIfShouldAbort } from './utils/stateless/test-if-should-abort'
 import { updateDraggedEvent } from './utils/stateless/update-dragged-event'
 import TimelineDragHandler from '@schedule-x/shared/src/interfaces/drag-and-drop/timeline-drag-handler.interface'
 
-const RESOURCE_ROW_HEIGHT = 50
-
 export default class TimelineDragHandlerImpl implements TimelineDragHandler {
   private readonly scrollEl: HTMLElement
   private readonly innerEl: HTMLElement
   private readonly resourceIds: string[]
+  private readonly resourceRowHeight: number
   private readonly originalStart: Temporal.ZonedDateTime
   private readonly originalEnd: Temporal.ZonedDateTime
   private readonly daysInWeek: number
@@ -21,6 +24,9 @@ export default class TimelineDragHandlerImpl implements TimelineDragHandler {
   private readonly dayStartTP: number
   private readonly timePointsPerDay: number
   private readonly totalTP: number
+  private readonly durationInTimelineTP: number
+  private readonly originalStartTP: number
+  private readonly initialContentX: number
   private lastClientX: number
   private lastClientY: number
 
@@ -39,6 +45,10 @@ export default class TimelineDragHandlerImpl implements TimelineDragHandler {
     this.innerEl = this.scrollEl.firstElementChild as HTMLElement
 
     this.resourceIds = Array.from($app.config.resources.value).map(([id]) => id)
+    const firstRow = this.scrollEl.querySelector(
+      '.sx__resource-timeline-row'
+    ) as HTMLElement | null
+    this.resourceRowHeight = firstRow ? firstRow.offsetHeight : 75
 
     this.originalStart = Temporal.ZonedDateTime.from(eventCopy.start.toString())
     this.originalEnd = Temporal.ZonedDateTime.from(eventCopy.end.toString())
@@ -52,6 +62,29 @@ export default class TimelineDragHandlerImpl implements TimelineDragHandler {
     this.dayStartTP = $app.config.dayBoundaries.value.start
     this.timePointsPerDay = $app.config.timePointsPerDay
     this.totalTP = this.daysInWeek * this.timePointsPerDay
+
+    // Pre-compute event duration in timeline-TP space (respects day boundaries)
+    const startDayOffset = this.weekStart
+      .toPlainDate()
+      .until(this.originalStart.toPlainDate()).days
+    const startTpInDay =
+      timePointsFromString(timeFromDateTime(this.originalStart.toString())) -
+      this.dayStartTP
+    const originalStartTP =
+      startDayOffset * this.timePointsPerDay + startTpInDay
+    this.originalStartTP = originalStartTP
+    const endDayOffset = this.weekStart
+      .toPlainDate()
+      .until(this.originalEnd.toPlainDate()).days
+    const endTpInDay =
+      timePointsFromString(timeFromDateTime(this.originalEnd.toString())) -
+      this.dayStartTP
+    const originalEndTP = endDayOffset * this.timePointsPerDay + endTpInDay
+    this.durationInTimelineTP = originalEndTP - originalStartTP
+
+    const scrollRect = this.scrollEl.getBoundingClientRect()
+    this.initialContentX =
+      eventCoordinates.clientX - scrollRect.left + this.scrollEl.scrollLeft
 
     this.lastClientX = eventCoordinates.clientX
     this.lastClientY = eventCoordinates.clientY
@@ -73,14 +106,12 @@ export default class TimelineDragHandlerImpl implements TimelineDragHandler {
     clientX: number
   ): Temporal.ZonedDateTime | null {
     const scrollRect = this.scrollEl.getBoundingClientRect()
-    const contentX = clientX - scrollRect.left + this.scrollEl.scrollLeft
-    const fraction = Math.max(
-      0,
-      Math.min(1, contentX / this.innerEl.scrollWidth)
-    )
+    const currentContentX = clientX - scrollRect.left + this.scrollEl.scrollLeft
+    const pixelDelta = currentContentX - this.initialContentX
+    const tpDelta = (pixelDelta / this.innerEl.scrollWidth) * this.totalTP
 
     const intervalTP = this.CHANGE_THRESHOLD_IN_TIME_POINTS
-    const rawTP = fraction * this.totalTP
+    const rawTP = this.originalStartTP + tpDelta
     const snappedTP = Math.round(rawTP / intervalTP) * intervalTP
     const clampedTP = Math.max(
       0,
@@ -103,7 +134,7 @@ export default class TimelineDragHandlerImpl implements TimelineDragHandler {
   private getResourceFromClientY(clientY: number): string | undefined {
     const scrollRect = this.scrollEl.getBoundingClientRect()
     const contentY = clientY - scrollRect.top + this.scrollEl.scrollTop
-    const rowIdx = Math.floor(contentY / RESOURCE_ROW_HEIGHT)
+    const rowIdx = Math.floor(contentY / this.resourceRowHeight)
     if (rowIdx < 0 || rowIdx >= this.resourceIds.length) return undefined
     return this.resourceIds[rowIdx]
   }
@@ -124,8 +155,27 @@ export default class TimelineDragHandlerImpl implements TimelineDragHandler {
     const newStart = this.getDateTimeFromClientX(clientX)
     if (!newStart) return
 
-    const duration = this.originalEnd.since(this.originalStart)
-    const newEnd = newStart.add(duration)
+    // Compute newEnd in timeline-TP space so it respects day boundaries
+    const newStartDayOffset = this.weekStart
+      .toPlainDate()
+      .until(newStart.toPlainDate()).days
+    const newStartTpInDay =
+      timePointsFromString(timeFromDateTime(newStart.toString())) -
+      this.dayStartTP
+    const newStartTP =
+      newStartDayOffset * this.timePointsPerDay + newStartTpInDay
+    const newEndTP = newStartTP + this.durationInTimelineTP
+    if (newEndTP > this.totalTP) return
+    const newEndDayOffset = Math.floor(newEndTP / this.timePointsPerDay)
+    const newEndTpInDay = (newEndTP % this.timePointsPerDay) + this.dayStartTP
+    const newEndDayStart = this.weekStart
+      .add({ days: newEndDayOffset })
+      .toPlainDate()
+      .toZonedDateTime(this.$app.config.timezone.value)
+    const newEnd = addTimePointsToDateTime(
+      newEndDayStart,
+      newEndTpInDay
+    ) as Temporal.ZonedDateTime
 
     const newResourceId = this.getResourceFromClientY(clientY)
 

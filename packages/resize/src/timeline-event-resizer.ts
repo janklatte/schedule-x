@@ -1,6 +1,10 @@
 import { CalendarAppSingleton } from '@schedule-x/shared/src'
 import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
-import { addTimePointsToDateTime } from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
+import {
+  addTimePointsToDateTime,
+  timePointsFromString,
+} from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
+import { timeFromDateTime } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/string-to-string'
 import { updateEventsList } from './utils/stateless/update-events-list'
 import { getEventCoordinates } from '@schedule-x/shared/src/utils/stateless/dom/get-event-coordinates'
 import { DateRange } from '@schedule-x/shared/src/types/date-range'
@@ -9,6 +13,12 @@ export class TimelineEventResizer {
   private readonly originalEnd: Temporal.ZonedDateTime
   private readonly innerEl!: HTMLElement
   private readonly totalTP!: number
+  private readonly innerElWidth!: number
+  private readonly weekStart!: Temporal.ZonedDateTime
+  private readonly dayStartTP!: number
+  private readonly dayEndTP!: number
+  private readonly timePointsPerDay!: number
+  private readonly originalEndTP!: number
   private lastValidEnd: Temporal.ZonedDateTime
   private lastIntervalDiff = 0
 
@@ -30,34 +40,44 @@ export class TimelineEventResizer {
     ) as HTMLElement
     const scrollEl = gridScrollable?.children[1] as HTMLElement
     this.innerEl = scrollEl?.firstElementChild as HTMLElement
+    this.innerElWidth =
+      this.innerEl?.offsetWidth || this.innerEl?.scrollWidth || 1
 
     const range = $app.calendarState.range.value as DateRange
     const daysInWeek =
       range.start.toPlainDate().until(range.end.toPlainDate()).days + 1
-    this.totalTP = daysInWeek * $app.config.timePointsPerDay
+    this.weekStart = range.start
+      .toPlainDate()
+      .toZonedDateTime($app.config.timezone.value)
+    this.dayStartTP = $app.config.dayBoundaries.value.start
+    this.dayEndTP = $app.config.dayBoundaries.value.end
+    this.timePointsPerDay = $app.config.timePointsPerDay
+    this.totalTP = daysInWeek * this.timePointsPerDay
+
+    // Pre-compute originalEnd position in timeline TP space
+    const endDayDiff = this.originalEnd.dayOfWeek - this.weekStart.dayOfWeek
+    const endDayOffset = endDayDiff < 0 ? endDayDiff + 7 : endDayDiff
+    const endTpInDay =
+      timePointsFromString(timeFromDateTime(this.originalEnd.toString())) -
+      this.dayStartTP
+    this.originalEndTP = endDayOffset * this.timePointsPerDay + endTpInDay
 
     calendarWrapper.classList.add('sx__is-resizing')
     this.setupEventListeners()
   }
 
   private getTimePointsPerPixelX(): number {
-    if (!this.innerEl) return 1
-    return this.totalTP / this.innerEl.scrollWidth
+    return this.totalTP / this.innerElWidth
   }
 
   private setupEventListeners() {
-    ;(this.$app.elements.calendarWrapper as HTMLElement).addEventListener(
-      'mousemove',
-      this.handleMouseOrTouchMove
-    )
+    document.addEventListener('mousemove', this.handleMouseOrTouchMove)
     document.addEventListener('mouseup', this.handleMouseUpOrTouchEnd, {
       once: true,
     })
-    ;(this.$app.elements.calendarWrapper as HTMLElement).addEventListener(
-      'touchmove',
-      this.handleMouseOrTouchMove,
-      { passive: false }
-    )
+    document.addEventListener('touchmove', this.handleMouseOrTouchMove, {
+      passive: false,
+    })
     document.addEventListener('touchend', this.handleMouseUpOrTouchEnd, {
       once: true,
     })
@@ -78,9 +98,26 @@ export class TimelineEventResizer {
   }
 
   private setNewEnd(pointsToAdd: number) {
+    // Convert to timeline TP position, add delta, then convert back respecting
+    // day boundaries (so going past 19:00 wraps to 08:00 of the next day)
+    const newTotalTP = Math.max(0, this.originalEndTP + pointsToAdd)
+    const newDayOffset = Math.floor(newTotalTP / this.timePointsPerDay)
+    const remainder = newTotalTP % this.timePointsPerDay
+    // When landing exactly on a boundary, snap to end of current day
+    // rather than start of next day
+    const finalDayOffset =
+      remainder === 0 && newDayOffset > 0 ? newDayOffset - 1 : newDayOffset
+    const finalTpInDay =
+      remainder === 0 && newDayOffset > 0
+        ? this.dayEndTP
+        : remainder + this.dayStartTP
+    const dayStart = this.weekStart
+      .add({ days: finalDayOffset })
+      .toPlainDate()
+      .toZonedDateTime(this.$app.config.timezone.value)
     const newEnd = addTimePointsToDateTime(
-      this.originalEnd,
-      pointsToAdd
+      dayStart,
+      finalTpInDay
     ) as Temporal.ZonedDateTime
 
     if (
@@ -138,13 +175,7 @@ export class TimelineEventResizer {
     this.updateCopy(undefined)
     const calendarWrapper = this.$app.elements.calendarWrapper as HTMLElement
     calendarWrapper.classList.remove('sx__is-resizing')
-    calendarWrapper.removeEventListener(
-      'mousemove',
-      this.handleMouseOrTouchMove
-    )
-    calendarWrapper.removeEventListener(
-      'touchmove',
-      this.handleMouseOrTouchMove
-    )
+    document.removeEventListener('mousemove', this.handleMouseOrTouchMove)
+    document.removeEventListener('touchmove', this.handleMouseOrTouchMove)
   }
 }

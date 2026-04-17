@@ -9,9 +9,10 @@ import { useRef, useEffect, useCallback } from 'preact/hooks'
 import { filterByRange } from '@schedule-x/calendar/src/utils/stateless/events/filter-by-range'
 import { useGridSteps } from './use-grid-steps'
 import ResourceTimelineGrid from './resource-timeline-grid'
+import { clampEventToRange } from './timeline-helpers'
 
 export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
-  const RESOURCE_ROW_HEIGHT = 50
+  const RESOURCE_ROW_HEIGHT = 75
   const MIN_TIME_COLUMN_WIDTH = 80
   const gridSteps = useGridSteps($app)
 
@@ -52,13 +53,11 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
         headerEl.scrollLeft = gridEl.scrollLeft
       }
     }
-
     const syncGridToHeader = () => {
       if (headerEl && gridEl) {
         gridEl.scrollLeft = headerEl.scrollLeft
       }
     }
-
     gridEl.addEventListener('scroll', syncHeaderToGrid)
     headerEl.addEventListener('scroll', syncGridToHeader)
 
@@ -72,7 +71,6 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
   useEffect(() => {
     const resourceNamesEl = resourceNamesRef.current
     const gridEl = gridScrollRef.current
-
     if (!resourceNamesEl || !gridEl) return
 
     const syncResourceNamesToGrid = () => {
@@ -80,13 +78,11 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
         resourceNamesEl.scrollTop = gridEl.scrollTop
       }
     }
-
     const syncGridToResourceNames = () => {
       if (resourceNamesEl && gridEl) {
         gridEl.scrollTop = resourceNamesEl.scrollTop
       }
     }
-
     gridEl.addEventListener('scroll', syncResourceNamesToGrid)
     resourceNamesEl.addEventListener('scroll', syncGridToResourceNames)
 
@@ -97,7 +93,8 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
   }, [])
 
   useEffect(() => {
-    scrollToToday()
+    const id = requestAnimationFrame(() => scrollToToday())
+    return () => cancelAnimationFrame(id)
   }, [$app.datePickerState.selectedDate.value])
 
   const resourceTimelineData = useComputed(() => {
@@ -119,18 +116,25 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
     // Create base week structure
     const week = createWeek($app)
 
-    // Get filtered events
     const calendarEvents = $app.calendarEvents.list.value
     const filteredEvents = $app.calendarEvents.filterPredicate.value
       ? calendarEvents.filter($app.calendarEvents.filterPredicate.value)
       : calendarEvents
 
-    const { timeGridEvents } = sortEventsForWeekView(filteredEvents)
-
-    // Position events in the time grid - same as week view
+    const { timeGridEvents, dateGridEvents } =
+      sortEventsForWeekView(filteredEvents)
     const weekWithEvents = positionInTimeGrid(timeGridEvents, week, $app)
+    dateGridEvents
+      .filter((e) => e._isMultiDayTimed)
+      .forEach((event) => {
+        const clamped = clampEventToRange(event, rangeStart, rangeEnd)
+        if (!clamped) return
+        const dateKey = Temporal.PlainDate.from(
+          clamped.start as Temporal.ZonedDateTime
+        ).toString()
+        weekWithEvents[dateKey]?.timeGridEvents.push(clamped)
+      })
 
-    // Get week start date
     const weekDays = Object.values(weekWithEvents)
     const weekStartDate =
       weekDays.length > 0 ? Temporal.PlainDate.from(weekDays[0].date) : null

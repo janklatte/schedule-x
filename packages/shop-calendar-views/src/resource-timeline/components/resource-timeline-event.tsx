@@ -66,6 +66,13 @@ export default function ResourceTimelineEvent({
     daysInWeek
   )
 
+  const prevConcurrent = event._previousConcurrentEvents ?? 0
+  const totalConcurrent = event._totalConcurrentEvents ?? 1
+  const maxConcurrent = event._maxConcurrentEvents ?? 1
+  const topPercent =
+    totalConcurrent > 1 ? (prevConcurrent / totalConcurrent) * 100 : 0
+  const heightPercent = totalConcurrent > 1 ? 100 / maxConcurrent : 100
+
   const customComponent = $app.config._customComponentFns.resourceTimelineEvent
   const customComponentId = useRef(
     customComponent
@@ -107,7 +114,9 @@ export default function ResourceTimelineEvent({
     if (event._options?.disableDND) return
     if (!updateCopy) return
 
-    const copy = deepCloneEvent(event, $app)
+    const originalEvent =
+      $app.calendarEvents.list.value.find((e) => e.id === event.id) ?? event
+    const copy = deepCloneEvent(originalEvent, $app)
     updateCopy(copy)
     $app.config.plugins.dragAndDrop.createTimelineDragHandler({
       $app,
@@ -135,7 +144,9 @@ export default function ResourceTimelineEvent({
     if (!$app.config.plugins.resize) return
     if (event._options?.disableResize) return
 
-    const copy = deepCloneEvent(event, $app)
+    const originalEvent =
+      $app.calendarEvents.list.value.find((e) => e.id === event.id) ?? event
+    const copy = deepCloneEvent(originalEvent, $app)
     updateCopy(copy)
     $app.config.plugins.resize.createTimelineEventResizer(copy, updateCopy, e)
   }
@@ -158,8 +169,8 @@ export default function ResourceTimelineEvent({
         position: 'absolute',
         left: `${left}%`,
         width: `${width}%`,
-        top: 0,
-        height: '100%',
+        top: `${topPercent}%`,
+        height: `${heightPercent}%`,
         backgroundColor: customComponent
           ? undefined
           : eventCSSVariables.backgroundColor,
@@ -167,6 +178,9 @@ export default function ResourceTimelineEvent({
         borderLeft: customComponent
           ? undefined
           : `4px solid ${eventCSSVariables.borderColor}`,
+        borderTop: event._previousConcurrentEvents
+          ? '1px solid #fff'
+          : undefined,
         padding: customComponent ? '0' : '2px 4px',
         fontSize: 'var(--sx-font-small)',
         overflow: 'hidden',
