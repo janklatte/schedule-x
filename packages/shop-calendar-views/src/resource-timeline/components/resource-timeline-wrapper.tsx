@@ -1,199 +1,24 @@
-import { useComputed } from '@preact/signals'
 import { PreactViewComponent } from '@schedule-x/shared/src/types/calendar/preact-view-component'
-import { createWeek } from '@schedule-x/calendar/src/utils/stateless/views/week/create-week'
 import { AppContext } from '@schedule-x/calendar/src/utils/stateful/app-context'
-import { sortEventsForWeekView } from '@schedule-x/calendar/src/utils/stateless/events/sort-events-for-week'
-import { positionInTimeGrid } from '@schedule-x/calendar/src/utils/stateless/events/position-in-time-grid'
 import ResourceTimelineHeader from './resource-timeline-header'
-import { useRef, useEffect, useCallback } from 'preact/hooks'
-import { filterByRange } from '@schedule-x/calendar/src/utils/stateless/events/filter-by-range'
 import { useGridSteps } from './use-grid-steps'
 import ResourceTimelineGrid from './resource-timeline-grid'
-import { clampEventToRange } from './timeline-helpers'
+import { useTimelineScroll } from './use-timeline-scroll'
+import { useResourceTimelineData } from './use-resource-timeline-data'
 
 export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
   const RESOURCE_ROW_HEIGHT = 75
   const MIN_TIME_COLUMN_WIDTH = 80
   const gridSteps = useGridSteps($app)
 
-  // Refs for scroll synchronization
-  const headerScrollRef = useRef<HTMLDivElement>(null)
-  const gridScrollRef = useRef<HTMLDivElement>(null)
-  const resourceNamesRef = useRef<HTMLDivElement>(null)
+  const {
+    headerScrollRef,
+    gridScrollRef,
+    resourceNamesRef,
+    gridScrollbarWidth,
+  } = useTimelineScroll($app)
 
-  const scrollToToday = useCallback(() => {
-    const day = $app.datePickerState.selectedDate.value
-    const dayElement = headerScrollRef.current?.querySelector(
-      `.sx__resource-timeline-day-header[data-date="${day}"]`
-    )
-
-    if (dayElement && gridScrollRef.current && headerScrollRef.current) {
-      const left =
-        dayElement.getBoundingClientRect().left -
-        headerScrollRef.current.getBoundingClientRect().left +
-        headerScrollRef.current.scrollLeft
-      gridScrollRef.current.scrollTo({ top: 0, left: left, behavior: 'auto' })
-      headerScrollRef.current.scrollTo({
-        top: 0,
-        left: left,
-        behavior: 'auto',
-      })
-    }
-  }, [])
-
-  // Synchronize scroll between header and grid
-  useEffect(() => {
-    const headerEl = headerScrollRef.current
-    const gridEl = gridScrollRef.current
-
-    if (!headerEl || !gridEl) return
-
-    const syncHeaderToGrid = () => {
-      if (headerEl && gridEl) {
-        headerEl.scrollLeft = gridEl.scrollLeft
-      }
-    }
-    const syncGridToHeader = () => {
-      if (headerEl && gridEl) {
-        gridEl.scrollLeft = headerEl.scrollLeft
-      }
-    }
-    gridEl.addEventListener('scroll', syncHeaderToGrid)
-    headerEl.addEventListener('scroll', syncGridToHeader)
-
-    return () => {
-      gridEl.removeEventListener('scroll', syncHeaderToGrid)
-      headerEl.removeEventListener('scroll', syncGridToHeader)
-    }
-  }, [])
-
-  // Synchronize vertical scroll between resource names and grid
-  useEffect(() => {
-    const resourceNamesEl = resourceNamesRef.current
-    const gridEl = gridScrollRef.current
-    if (!resourceNamesEl || !gridEl) return
-
-    const syncResourceNamesToGrid = () => {
-      if (resourceNamesEl && gridEl) {
-        resourceNamesEl.scrollTop = gridEl.scrollTop
-      }
-    }
-    const syncGridToResourceNames = () => {
-      if (resourceNamesEl && gridEl) {
-        gridEl.scrollTop = resourceNamesEl.scrollTop
-      }
-    }
-    gridEl.addEventListener('scroll', syncResourceNamesToGrid)
-    resourceNamesEl.addEventListener('scroll', syncGridToResourceNames)
-
-    return () => {
-      gridEl.removeEventListener('scroll', syncResourceNamesToGrid)
-      resourceNamesEl.removeEventListener('scroll', syncGridToResourceNames)
-    }
-  }, [])
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => scrollToToday())
-    return () => cancelAnimationFrame(id)
-  }, [$app.datePickerState.selectedDate.value])
-
-  const resourceTimelineData = useComputed(() => {
-    const rangeStart = $app.calendarState.range.value?.start
-    const rangeEnd = $app.calendarState.range.value?.end
-    if (!rangeStart || !rangeEnd)
-      return { people: [], week: {}, weekStart: null }
-
-    // Get unique people from resources
-    const uniquePeople = Array.from($app.config.resources?.value || []).map(
-      ([key, value]) => {
-        return {
-          id: key,
-          name: value,
-        }
-      }
-    )
-
-    // Create base week structure
-    const week = createWeek($app)
-
-    const calendarEvents = $app.calendarEvents.list.value
-    const filteredEvents = $app.calendarEvents.filterPredicate.value
-      ? calendarEvents.filter($app.calendarEvents.filterPredicate.value)
-      : calendarEvents
-
-    const { timeGridEvents, dateGridEvents } =
-      sortEventsForWeekView(filteredEvents)
-    const weekWithEvents = positionInTimeGrid(timeGridEvents, week, $app)
-    dateGridEvents
-      .filter((e) => e._isMultiDayTimed)
-      .forEach((event) => {
-        const clamped = clampEventToRange(event, rangeStart, rangeEnd)
-        if (!clamped) return
-        const dateKey = Temporal.PlainDate.from(
-          clamped.start as Temporal.ZonedDateTime
-        ).toString()
-        weekWithEvents[dateKey]?.timeGridEvents.push(clamped)
-      })
-
-    const weekDays = Object.values(weekWithEvents)
-    const weekStartDate =
-      weekDays.length > 0 ? Temporal.PlainDate.from(weekDays[0].date) : null
-    const weekStart = weekStartDate
-      ? Temporal.ZonedDateTime.from({
-          year: weekStartDate.year,
-          month: weekStartDate.month,
-          day: weekStartDate.day,
-          hour: 0,
-          minute: 0,
-          second: 0,
-          timeZone: $app.config.timezone.value,
-        })
-      : null
-
-    Object.entries(weekWithEvents).forEach(([date, day]) => {
-      const plainDate = Temporal.PlainDate.from(date)
-      const rangeStartDateTime = Temporal.ZonedDateTime.from({
-        year: plainDate.year,
-        month: plainDate.month,
-        day: plainDate.day,
-        hour:
-          $app.config.dayBoundaries.value.start === 0
-            ? 0
-            : $app.config.dayBoundaries.value.start / 100,
-        minute: 0,
-        second: 0,
-        timeZone: $app.config.timezone.value,
-      })
-      let rangeEndDateTime = Temporal.ZonedDateTime.from({
-        year: plainDate.year,
-        month: plainDate.month,
-        day: plainDate.day,
-        hour:
-          $app.config.dayBoundaries.value.end === 2400
-            ? 23
-            : $app.config.dayBoundaries.value.end / 100,
-        minute: $app.config.dayBoundaries.value.end === 2400 ? 59 : 0,
-        second: $app.config.dayBoundaries.value.end === 2400 ? 59 : 0,
-        timeZone: $app.config.timezone.value,
-      })
-      if ($app.config.isHybridDay) {
-        rangeEndDateTime = rangeEndDateTime.add({ days: 1 })
-      }
-
-      day.backgroundEvents = filterByRange(
-        $app.calendarEvents.backgroundEvents.value,
-        {
-          start: rangeStartDateTime,
-          end: rangeEndDateTime,
-        },
-        $app.config.timezone.value
-      )
-    })
-
-    return { people: uniquePeople, week: weekWithEvents, weekStart }
-  })
-
-  const { people, week, weekStart } = resourceTimelineData.value
+  const { people, week, weekStart } = useResourceTimelineData($app)
   const weekDays = Object.values(week)
   const daysInWeek = weekDays.length
 
@@ -228,6 +53,7 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
             className="sx__resource-timeline-header"
             style={{
               paddingLeft: '150px',
+              paddingRight: `${gridScrollbarWidth}px`,
               position: 'sticky',
               top: 0,
               zIndex: 2,
@@ -272,6 +98,7 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
                           date={date}
                           idx={idx}
                           minTimeColumnWidth={MIN_TIME_COLUMN_WIDTH}
+                          gridSteps={gridSteps}
                         />
                       )
                     })}
@@ -292,6 +119,7 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
             $app={$app}
             gridScrollRef={gridScrollRef}
             resourceNamesRef={resourceNamesRef}
+            minTimeColumnWidth={MIN_TIME_COLUMN_WIDTH}
           />
         </div>
       </AppContext.Provider>

@@ -4,11 +4,7 @@ import { CalendarAppSingleton } from '@schedule-x/shared/src'
 import { WeekDay } from '@schedule-x/calendar/src/types/week'
 import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 import ResourceTimelineRow from './resource-timeline-row'
-import {
-  getXCoordinateInTimeline,
-  getEventWidthInTimeline,
-  createDayBoundariesMap,
-} from './timeline-helpers'
+import { createDayBoundariesMap } from './timeline-helpers'
 
 type props = {
   people: Array<{ id: string; name: string }>
@@ -21,6 +17,7 @@ type props = {
   $app: CalendarAppSingleton
   gridScrollRef: RefObject<HTMLDivElement>
   resourceNamesRef: RefObject<HTMLDivElement>
+  minTimeColumnWidth: number
 }
 
 export default function ResourceTimelineGrid({
@@ -34,6 +31,7 @@ export default function ResourceTimelineGrid({
   $app,
   gridScrollRef,
   resourceNamesRef,
+  minTimeColumnWidth,
 }: props) {
   const [copyState, setCopyState] = useState<{
     event: CalendarEventInternal | undefined
@@ -139,8 +137,6 @@ export default function ResourceTimelineGrid({
                       gridSteps={gridSteps}
                       $app={$app}
                       dayBoundariesMap={dayBoundariesMap}
-                      getXCoordinateInTimeline={getXCoordinateInTimeline}
-                      getEventWidthInTimeline={getEventWidthInTimeline}
                       copyEvent={
                         copyEvent?.resourceId === person.id
                           ? copyEvent
@@ -148,6 +144,7 @@ export default function ResourceTimelineGrid({
                       }
                       draggingEventId={copyEvent?.id}
                       updateCopy={updateCopy}
+                      minTimeColumnWidth={minTimeColumnWidth}
                     />
                   ))
                 })()

@@ -124,37 +124,37 @@ const daysToSubtract = (dayOfWeek - firstDayOfWeek + 7) % 7
 const weekStart = currentDate.subtract({ days: daysToSubtract })
 
 // Generate events for each resource
-Array.from(resources.keys()).forEach((resourceId) => {
-  if (resourceId !== 'asdf-1234') return
-  // For each day of the week (7 days)
-  Array.from({ length: 7 }).forEach((_, dayIndex) => {
-    // Only create events on Mondays (0), Wednesdays (2), and Fridays (4)
-    if (dayIndex !== 0 && dayIndex !== 2 && dayIndex !== 4) {
-      return
-    }
+// Array.from(resources.keys()).forEach((resourceId) => {
+//   if (resourceId !== 'asdf-1234') return
+//   // For each day of the week (7 days)
+//   Array.from({ length: 7 }).forEach((_, dayIndex) => {
+//     // Only create events on Mondays (0), Wednesdays (2), and Fridays (4)
+//     if (dayIndex !== 0 && dayIndex !== 2 && dayIndex !== 4) {
+//       return
+//     }
 
-    const currentDay = weekStart.add({ days: dayIndex })
-    const nextDay = currentDay.add({ days: 1 })
+//     const currentDay = weekStart.add({ days: dayIndex })
+//     const nextDay = currentDay.add({ days: 1 })
 
-    // Create 1 event for this resource on this day
-    Array.from({ length: 1 }).forEach((_, eventIndex) => {
-      const startHour = 8 + eventIndex // Starting from 8:00
-      const endHour = 10 // End at 10:00 on the next day
+//     // Create 1 event for this resource on this day
+//     Array.from({ length: 1 }).forEach((_, eventIndex) => {
+//       const startHour = 8 + eventIndex // Starting from 8:00
+//       const endHour = 10 // End at 10:00 on the next day
 
-      events.push({
-        id: eventId++,
-        title: `Event ${eventId - 1}`,
-        start: Temporal.ZonedDateTime.from(
-          `${currentDay}T${String(startHour).padStart(2, '0')}:00[Europe/Berlin]`
-        ),
-        end: Temporal.ZonedDateTime.from(
-          `${nextDay}T${String(endHour).padStart(2, '0')}:00[Europe/Berlin]`
-        ),
-        resourceId: resourceId,
-      })
-    })
-  })
-})
+//       events.push({
+//         id: eventId++,
+//         title: `Event ${eventId - 1}`,
+//         start: Temporal.ZonedDateTime.from(
+//           `${currentDay}T${String(startHour).padStart(2, '0')}:00[Europe/Berlin]`
+//         ),
+//         end: Temporal.ZonedDateTime.from(
+//           `${nextDay}T${String(endHour).padStart(2, '0')}:00[Europe/Berlin]`
+//         ),
+//         resourceId: resourceId,
+//       })
+//     })
+//   })
+// })
 
 const calendar = createCalendar({
   plugins: [

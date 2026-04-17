@@ -2,7 +2,6 @@ import { useMemo } from 'preact/hooks'
 import { CalendarAppSingleton } from '@schedule-x/shared/src'
 import { DayBoundariesDateTime } from '@schedule-x/shared/src/types/day-boundaries-date-time'
 import { WeekDay } from '@schedule-x/calendar/src/types/week'
-import { DayBoundariesInternal } from '@schedule-x/shared/src/types/calendar/day-boundaries'
 import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 import ResourceTimelineEvent from './resource-timeline-event'
 import { assignTimelineEventSlots } from './timeline-helpers'
@@ -10,6 +9,10 @@ import {
   timePointsFromString,
   timeStringFromTimePoints,
 } from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
+import {
+  getXCoordinateInTimeline,
+  getEventWidthInTimeline,
+} from './timeline-helpers'
 
 type props = {
   person: { id: string; name: string }
@@ -19,23 +22,10 @@ type props = {
   gridSteps: Array<{ hour: number; minute: number }>
   $app: CalendarAppSingleton
   dayBoundariesMap: Map<string, DayBoundariesDateTime>
-  getXCoordinateInTimeline: (
-    dateTime: Temporal.ZonedDateTime,
-    weekStart: Temporal.ZonedDateTime,
-    dayBoundaries: DayBoundariesInternal,
-    pointsPerDay: number,
-    daysInWeek: number
-  ) => number
-  getEventWidthInTimeline: (
-    start: Temporal.ZonedDateTime,
-    end: Temporal.ZonedDateTime,
-    dayBoundaries: DayBoundariesInternal,
-    pointsPerDay: number,
-    daysInWeek: number
-  ) => number
   copyEvent?: CalendarEventInternal
   draggingEventId?: string | number
   updateCopy: (copy: CalendarEventInternal | undefined) => void
+  minTimeColumnWidth: number
 }
 
 export default function ResourceTimelineRow({
@@ -46,11 +36,10 @@ export default function ResourceTimelineRow({
   gridSteps,
   $app,
   dayBoundariesMap,
-  getXCoordinateInTimeline,
-  getEventWidthInTimeline,
   copyEvent,
   draggingEventId,
   updateCopy,
+  minTimeColumnWidth,
 }: props) {
   const eventsWithConcurrency = useMemo(
     () =>
@@ -68,7 +57,9 @@ export default function ResourceTimelineRow({
     <div
       className="sx__resource-timeline-row"
       data-person-id={person.id}
-      style={{ borderBottom: '1px solid var(--sx-color-outline-variant)' }}
+      style={{
+        borderBottom: '1px solid var(--sx-color-outline-variant)',
+      }}
     >
       {weekDays.map((day, dayIdx) => {
         const plainDate = Temporal.PlainDate.from(day.date)
@@ -88,6 +79,7 @@ export default function ResourceTimelineRow({
             $app.config.timePointsPerDay,
             daysInWeek
           )
+          const isDayBoundary = timeSlotIdx === 0 && dayIdx > 0
           return (
             <div
               key={`grid-cell-${day.date}-${gridStep.hour}-${gridStep.minute}`}
@@ -95,12 +87,15 @@ export default function ResourceTimelineRow({
               style={{
                 position: 'absolute',
                 left: `${left}%`,
-                width: `80px`,
+                width: `${minTimeColumnWidth}px`,
                 top: 0,
                 bottom: 0,
+                boxShadow: isDayBoundary
+                  ? '-2px 0 0 0 var(--sx-color-outline-variant)'
+                  : 'none',
                 borderLeft:
-                  timeSlotIdx > 0 || dayIdx > 0
-                    ? '1px dashed var(--sx-color-outline-variant)'
+                  !isDayBoundary && (timeSlotIdx > 0 || dayIdx > 0)
+                    ? '1px solid var(--sx-color-outline-variant)'
                     : 'none',
                 pointerEvents: 'none',
                 zIndex: 0,
