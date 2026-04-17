@@ -20,7 +20,8 @@ export interface ResizePlugin extends PluginBase<string> {
   createTimelineEventResizer(
     calendarEvent: CalendarEventInternal,
     updateCopy: (newCopy: CalendarEventInternal | undefined) => void,
-    uiEvent: MouseEvent | TouchEvent
+    uiEvent: MouseEvent | TouchEvent,
+    customIntervalTP?: number
   ): void
 
   setInterval(minutes: number): void

@@ -54,7 +54,8 @@ class ResizePluginImpl implements ResizePlugin {
   createTimelineEventResizer(
     calendarEvent: CalendarEventInternal,
     updateCopy: (newCopy: CalendarEventInternal | undefined) => void,
-    uiEvent: MouseEvent | TouchEvent
+    uiEvent: MouseEvent | TouchEvent,
+    customIntervalTP?: number
   ) {
     if (!this.$app) return this.logError()
 
@@ -64,7 +65,7 @@ class ResizePluginImpl implements ResizePlugin {
       calendarEvent,
       updateCopy,
       clientX,
-      this.getTimePointsForIntervalConfig()
+      customIntervalTP ?? this.getTimePointsForIntervalConfig()
     )
   }
 

@@ -13,6 +13,7 @@ import {
   getXCoordinateInTimeline,
   getEventWidthInTimeline,
 } from './timeline-helpers'
+import { TimelineMode } from './use-grid-steps'
 
 type props = {
   person: { id: string; name: string }
@@ -26,6 +27,8 @@ type props = {
   draggingEventId?: string | number
   updateCopy: (copy: CalendarEventInternal | undefined) => void
   minTimeColumnWidth: number
+  mode: TimelineMode
+  snappingIntervalTP: number | undefined
 }
 
 export default function ResourceTimelineRow({
@@ -40,6 +43,8 @@ export default function ResourceTimelineRow({
   draggingEventId,
   updateCopy,
   minTimeColumnWidth,
+  mode,
+  snappingIntervalTP,
 }: props) {
   const eventsWithConcurrency = useMemo(
     () =>
@@ -61,49 +66,69 @@ export default function ResourceTimelineRow({
         borderBottom: '1px solid var(--sx-color-outline-variant)',
       }}
     >
-      {weekDays.map((day, dayIdx) => {
-        const plainDate = Temporal.PlainDate.from(day.date)
-        return gridSteps.map((gridStep, timeSlotIdx) => {
-          const timeSlotDateTime = Temporal.ZonedDateTime.from({
-            year: plainDate.year,
-            month: plainDate.month,
-            day: plainDate.day,
-            hour: gridStep.hour,
-            minute: gridStep.minute,
-            timeZone: $app.config.timezone.value,
-          })
-          const left = getXCoordinateInTimeline(
-            timeSlotDateTime,
-            weekStart,
-            $app.config.dayBoundaries.value,
-            $app.config.timePointsPerDay,
-            daysInWeek
-          )
-          const isDayBoundary = timeSlotIdx === 0 && dayIdx > 0
-          return (
+      {mode === 'day'
+        ? weekDays.map((day, dayIdx) => (
             <div
-              key={`grid-cell-${day.date}-${gridStep.hour}-${gridStep.minute}`}
+              key={`grid-cell-${day.date}`}
               className="sx__resource-timeline-time-cell"
               style={{
                 position: 'absolute',
-                left: `${left}%`,
-                width: `${minTimeColumnWidth}px`,
+                left: `${(dayIdx / daysInWeek) * 100}%`,
+                width: `${100 / daysInWeek}%`,
                 top: 0,
                 bottom: 0,
-                boxShadow: isDayBoundary
-                  ? '-2px 0 0 0 var(--sx-color-outline-variant)'
-                  : 'none',
-                borderLeft:
-                  !isDayBoundary && (timeSlotIdx > 0 || dayIdx > 0)
-                    ? '1px solid var(--sx-color-outline-variant)'
+                boxShadow:
+                  dayIdx > 0
+                    ? '-2px 0 0 0 var(--sx-color-outline-variant)'
                     : 'none',
                 pointerEvents: 'none',
                 zIndex: 0,
               }}
             />
-          )
-        })
-      })}
+          ))
+        : weekDays.map((day, dayIdx) => {
+            const plainDate = Temporal.PlainDate.from(day.date)
+            return gridSteps.map((gridStep, timeSlotIdx) => {
+              const timeSlotDateTime = Temporal.ZonedDateTime.from({
+                year: plainDate.year,
+                month: plainDate.month,
+                day: plainDate.day,
+                hour: gridStep.hour,
+                minute: gridStep.minute,
+                timeZone: $app.config.timezone.value,
+              })
+              const left = getXCoordinateInTimeline(
+                timeSlotDateTime,
+                weekStart,
+                $app.config.dayBoundaries.value,
+                $app.config.timePointsPerDay,
+                daysInWeek
+              )
+              const isDayBoundary = timeSlotIdx === 0 && dayIdx > 0
+              return (
+                <div
+                  key={`grid-cell-${day.date}-${gridStep.hour}-${gridStep.minute}`}
+                  className="sx__resource-timeline-time-cell"
+                  style={{
+                    position: 'absolute',
+                    left: `${left}%`,
+                    width: `${minTimeColumnWidth}px`,
+                    top: 0,
+                    bottom: 0,
+                    boxShadow: isDayBoundary
+                      ? '-2px 0 0 0 var(--sx-color-outline-variant)'
+                      : 'none',
+                    borderLeft:
+                      !isDayBoundary && (timeSlotIdx > 0 || dayIdx > 0)
+                        ? '1px solid var(--sx-color-outline-variant)'
+                        : 'none',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                  }}
+                />
+              )
+            })
+          })}
 
       {weekDays.flatMap((day) =>
         day.backgroundEvents
@@ -188,6 +213,7 @@ export default function ResourceTimelineRow({
             getEventWidthInTimeline={getEventWidthInTimeline}
             $app={$app}
             updateCopy={updateCopy}
+            snappingIntervalTP={snappingIntervalTP}
           />
         )
       })}

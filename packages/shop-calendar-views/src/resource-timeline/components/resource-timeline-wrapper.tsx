@@ -1,15 +1,24 @@
 import { PreactViewComponent } from '@schedule-x/shared/src/types/calendar/preact-view-component'
 import { AppContext } from '@schedule-x/calendar/src/utils/stateful/app-context'
 import ResourceTimelineHeader from './resource-timeline-header'
-import { useGridSteps } from './use-grid-steps'
+import { useGridSteps, TimelineMode } from './use-grid-steps'
 import ResourceTimelineGrid from './resource-timeline-grid'
 import { useTimelineScroll } from './use-timeline-scroll'
 import { useResourceTimelineData } from './use-resource-timeline-data'
+import { CalendarAppSingleton } from '@schedule-x/shared/src'
 
-export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
-  const RESOURCE_ROW_HEIGHT = 75
-  const MIN_TIME_COLUMN_WIDTH = 80
-  const gridSteps = useGridSteps($app)
+const RESOURCE_ROW_HEIGHT = 75
+const MIN_TIME_COLUMN_WIDTH = 80
+export const DAY_MIN_COLUMN_WIDTH = 150
+
+type CoreProps = {
+  $app: CalendarAppSingleton
+  id: string | undefined
+  mode: TimelineMode
+}
+
+function ResourceTimelineCore({ $app, id, mode }: CoreProps) {
+  const gridSteps = useGridSteps($app, mode)
 
   const {
     headerScrollRef,
@@ -24,9 +33,13 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
 
   // Calculate total width for the week
   const weekWidth =
-    gridSteps.length > 0 && daysInWeek > 0
-      ? MIN_TIME_COLUMN_WIDTH * gridSteps.length * daysInWeek
-      : 0
+    mode === 'day'
+      ? DAY_MIN_COLUMN_WIDTH * daysInWeek
+      : gridSteps.length > 0 && daysInWeek > 0
+        ? MIN_TIME_COLUMN_WIDTH * gridSteps.length * daysInWeek
+        : 0
+
+  const snappingIntervalTP = undefined
 
   return (
     <>
@@ -40,7 +53,7 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
             position: relative;
             height: ${RESOURCE_ROW_HEIGHT}px;
             min-height: ${RESOURCE_ROW_HEIGHT}px;
-            width: ${weekWidth}px;
+            width: ${mode === 'day' ? '100%' : `${weekWidth}px`};
             min-width: ${weekWidth}px;
           }
         `}</style>
@@ -99,6 +112,7 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
                           idx={idx}
                           minTimeColumnWidth={MIN_TIME_COLUMN_WIDTH}
                           gridSteps={gridSteps}
+                          mode={mode}
                         />
                       )
                     })}
@@ -120,9 +134,21 @@ export const ResourceTimelineWrapper: PreactViewComponent = ({ $app, id }) => {
             gridScrollRef={gridScrollRef}
             resourceNamesRef={resourceNamesRef}
             minTimeColumnWidth={MIN_TIME_COLUMN_WIDTH}
+            mode={mode}
+            snappingIntervalTP={snappingIntervalTP}
           />
         </div>
       </AppContext.Provider>
     </>
   )
 }
+
+export const createResourceTimelineWrapper = (
+  mode: TimelineMode
+): PreactViewComponent =>
+  function ResourceTimelineWrapper({ $app, id }) {
+    return <ResourceTimelineCore $app={$app} id={id} mode={mode} />
+  }
+
+export const ResourceTimelineWrapper: PreactViewComponent =
+  createResourceTimelineWrapper('time')

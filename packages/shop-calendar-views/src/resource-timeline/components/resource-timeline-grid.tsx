@@ -5,6 +5,7 @@ import { WeekDay } from '@schedule-x/calendar/src/types/week'
 import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 import ResourceTimelineRow from './resource-timeline-row'
 import { createDayBoundariesMap } from './timeline-helpers'
+import { TimelineMode } from './use-grid-steps'
 
 type props = {
   people: Array<{ id: string; name: string }>
@@ -18,6 +19,8 @@ type props = {
   gridScrollRef: RefObject<HTMLDivElement>
   resourceNamesRef: RefObject<HTMLDivElement>
   minTimeColumnWidth: number
+  mode: TimelineMode
+  snappingIntervalTP: number | undefined
 }
 
 export default function ResourceTimelineGrid({
@@ -32,6 +35,8 @@ export default function ResourceTimelineGrid({
   gridScrollRef,
   resourceNamesRef,
   minTimeColumnWidth,
+  mode,
+  snappingIntervalTP,
 }: props) {
   const [copyState, setCopyState] = useState<{
     event: CalendarEventInternal | undefined
@@ -117,7 +122,7 @@ export default function ResourceTimelineGrid({
             style={{
               display: 'flex',
               flexDirection: 'column',
-              width: `${weekWidth}px`,
+              width: mode === 'day' ? '100%' : `${weekWidth}px`,
               minWidth: `${weekWidth}px`,
             }}
           >
@@ -145,6 +150,8 @@ export default function ResourceTimelineGrid({
                       draggingEventId={copyEvent?.id}
                       updateCopy={updateCopy}
                       minTimeColumnWidth={minTimeColumnWidth}
+                      mode={mode}
+                      snappingIntervalTP={snappingIntervalTP}
                     />
                   ))
                 })()

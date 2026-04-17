@@ -3,12 +3,22 @@ import { useSignalEffect } from '@preact/signals'
 import { getTimeAxisHours } from '@schedule-x/calendar/src/utils/stateless/time/time-axis/time-axis'
 import { CalendarAppSingleton } from '@schedule-x/shared/src'
 
-export const useGridSteps = ($app: CalendarAppSingleton) => {
+export type TimelineMode = 'time' | 'day'
+
+export const useGridSteps = (
+  $app: CalendarAppSingleton,
+  mode: TimelineMode = 'time'
+) => {
   const [gridSteps, setGridSteps] = useState<
     { hour: number; minute: number }[]
   >([])
 
   useSignalEffect(() => {
+    if (mode === 'day') {
+      setGridSteps([])
+      return
+    }
+
     const hourSteps = getTimeAxisHours(
       $app.config.dayBoundaries.value,
       $app.config.isHybridDay

@@ -7,4 +7,5 @@ export default interface DragHandlerDependencies {
   eventCoordinates: EventCoordinates
   eventCopy: CalendarEventInternal
   updateCopy: (newCopy: CalendarEventInternal | undefined) => void
+  customIntervalTP?: number
 }

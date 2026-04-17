@@ -4,6 +4,8 @@ import { isToday } from '@schedule-x/shared/src/utils/stateless/time/comparison'
 import { toDateString } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/date-to-strings'
 import { getDayNameShort } from '@schedule-x/shared/src/utils/stateless/time/date-time-localization/date-time-localization'
 import CalendarConfigInternal from '@schedule-x/shared/src/interfaces/calendar/calendar-config'
+import { TimelineMode } from './use-grid-steps'
+import { DAY_MIN_COLUMN_WIDTH } from './resource-timeline-wrapper'
 
 type props = {
   appConfig: CalendarConfigInternal
@@ -12,6 +14,7 @@ type props = {
   idx: number
   minTimeColumnWidth: number
   gridSteps: Array<{ hour: number; minute: number }>
+  mode: TimelineMode
 }
 
 export default function ResourceTimelineHeader({
@@ -21,6 +24,7 @@ export default function ResourceTimelineHeader({
   idx,
   minTimeColumnWidth,
   gridSteps,
+  mode,
 }: props) {
   const formatter = new Intl.DateTimeFormat(
     appConfig.locale.value,
@@ -39,6 +43,7 @@ export default function ResourceTimelineHeader({
   }
 
   const getColumnWidth = () => {
+    if (mode === 'day') return `${DAY_MIN_COLUMN_WIDTH}px`
     return `${minTimeColumnWidth * gridSteps.length}px`
   }
 
@@ -50,7 +55,8 @@ export default function ResourceTimelineHeader({
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        width: getColumnWidth(),
+        width: mode === 'day' ? undefined : getColumnWidth(),
+        flex: mode === 'day' ? 1 : undefined,
       }}
       data-index={idx}
     >
@@ -85,44 +91,46 @@ export default function ResourceTimelineHeader({
       </div>
 
       {/* Time slots as columns */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          width: '100%',
-          overflow: 'hidden',
-        }}
-      >
-        {gridSteps.map((gridStep, index) => (
-          <div
-            key={`${day.date}-${gridStep.hour}-${gridStep.minute}`}
-            className="sx__resource-timeline-time-slot"
-            style={{
-              //   minWidth: `${minTimeColumnWidth}px`,
-              width: `${minTimeColumnWidth}px`,
-              borderLeft:
-                index > 0
-                  ? '1px solid var(--sx-color-outline-variant)'
-                  : 'none',
-              padding: '4px 2px',
-              fontSize: 'var(--sx-font-small)',
-              textAlign: 'center',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <span
-              className="sx__timeline-grid__hour-text"
-              style={{ display: 'flex' }}
+      {mode === 'time' && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            width: '100%',
+            overflow: 'hidden',
+          }}
+        >
+          {gridSteps.map((gridStep, index) => (
+            <div
+              key={`${day.date}-${gridStep.hour}-${gridStep.minute}`}
+              className="sx__resource-timeline-time-slot"
+              style={{
+                //   minWidth: `${minTimeColumnWidth}px`,
+                width: `${minTimeColumnWidth}px`,
+                borderLeft:
+                  index > 0
+                    ? '1px solid var(--sx-color-outline-variant)'
+                    : 'none',
+                padding: '4px 2px',
+                fontSize: 'var(--sx-font-small)',
+                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              {formatter.format(
-                new Date(0, 0, 0, gridStep.hour, gridStep.minute)
-              )}
-            </span>
-          </div>
-        ))}
-      </div>
+              <span
+                className="sx__timeline-grid__hour-text"
+                style={{ display: 'flex' }}
+              >
+                {formatter.format(
+                  new Date(0, 0, 0, gridStep.hour, gridStep.minute)
+                )}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

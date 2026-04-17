@@ -34,6 +34,7 @@ import {
   createViewResourceDay,
   createViewResourceTimeline,
   createViewWeekAgenda,
+  createViewResourceTimelineDays,
 } from '../../packages/shop-calendar-views/src'
 
 const calendarElement = document.getElementById('calendar') as HTMLElement
@@ -186,6 +187,7 @@ const calendar = createCalendar({
     createViewResourceDay(),
     createViewWeekAgenda(),
     createViewResourceTimeline(),
+    createViewResourceTimelineDays(),
   ],
   defaultView: 'resource-timeline',
   callbacks: {

@@ -9,4 +9,5 @@ export enum InternalViewName {
   ResourceDay = 'resource-day',
   WeekAgenda = 'week-agenda',
   ResourceTimeline = 'resource-timeline',
+  ResourceTimelineDays = 'resource-timeline-days',
 }

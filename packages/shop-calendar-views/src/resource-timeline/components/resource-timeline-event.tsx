@@ -31,6 +31,7 @@ export type ResourceTimelineEventProps = {
   $app: CalendarAppSingleton
   isCopy?: boolean
   updateCopy?: (copy: CalendarEventInternal | undefined) => void
+  snappingIntervalTP?: number
 }
 
 export default function ResourceTimelineEvent({
@@ -43,6 +44,7 @@ export default function ResourceTimelineEvent({
   $app,
   isCopy,
   updateCopy,
+  snappingIntervalTP,
 }: ResourceTimelineEventProps) {
   const eventStart = event.start as Temporal.ZonedDateTime
   const eventEnd = event.end as Temporal.ZonedDateTime
@@ -123,6 +125,7 @@ export default function ResourceTimelineEvent({
       eventCoordinates: getEventCoordinates(uiEvent),
       eventCopy: copy,
       updateCopy,
+      customIntervalTP: snappingIntervalTP,
     })
   }
 
@@ -148,7 +151,12 @@ export default function ResourceTimelineEvent({
       $app.calendarEvents.list.value.find((e) => e.id === event.id) ?? event
     const copy = deepCloneEvent(originalEvent, $app)
     updateCopy(copy)
-    $app.config.plugins.resize.createTimelineEventResizer(copy, updateCopy, e)
+    $app.config.plugins.resize.createTimelineEventResizer(
+      copy,
+      updateCopy,
+      e,
+      snappingIntervalTP
+    )
   }
 
   const eventColor = event._color || 'primary'

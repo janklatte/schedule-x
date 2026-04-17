@@ -91,7 +91,7 @@ class DragAndDropPluginImpl implements DragAndDropPlugin {
       dependencies.eventCoordinates,
       dependencies.eventCopy,
       dependencies.updateCopy,
-      this.getTimePointsForIntervalConfig()
+      dependencies.customIntervalTP ?? this.getTimePointsForIntervalConfig()
     )
   }
 }

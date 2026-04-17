@@ -5,3 +5,7 @@ export {
   createViewResourceTimeline,
   viewResourceTimeline,
 } from './resource-timeline'
+export {
+  createViewResourceTimelineDays,
+  viewResourceTimelineDays,
+} from './resource-timeline-days'
