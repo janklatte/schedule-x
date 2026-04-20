@@ -83,15 +83,15 @@ const events = [
   {
     id: 1,
     title: 'On Min Boundary',
-    start: Temporal.ZonedDateTime.from('2025-10-24T09:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2025-10-24T10:00[Europe/Berlin]'),
+    start: Temporal.ZonedDateTime.from('2026-04-17T00:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2026-04-17T10:00[Europe/Berlin]'),
     resourceId: 'asdf-1234',
   },
   {
     id: 2,
     title: 'On Max Boundary',
-    start: Temporal.ZonedDateTime.from('2025-10-21T14:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2025-10-21T15:30[Europe/Berlin]'),
+    start: Temporal.ZonedDateTime.from('2026-04-21T14:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2026-04-21T15:30[Europe/Berlin]'),
     resourceId: 'asdf-4321',
   },
   /* ...seededEvents.map(event => ({
@@ -425,8 +425,8 @@ calendar.render(calendarElement)
 eventsServicePlugin.setBackgroundEvents([
   {
     title: 'Out of office',
-    start: Temporal.ZonedDateTime.from('2026-04-16T00:00:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2026-04-16T12:00:00[Europe/Berlin]'),
+    start: Temporal.ZonedDateTime.from('2026-04-20T16:00:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2026-04-21T00:00:00[Europe/Berlin]'),
     style: {
       // create tilted 5px thick gray lines
       backgroundImage:

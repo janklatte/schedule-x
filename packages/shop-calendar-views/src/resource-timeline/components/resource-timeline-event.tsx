@@ -53,16 +53,45 @@ export default function ResourceTimelineEvent({
 
   if (!dayBoundaries) return null
 
+  // Clamp start to the day boundary start
+  const effectiveStart =
+    Temporal.ZonedDateTime.compare(eventStart, dayBoundaries.start) < 0
+      ? dayBoundaries.start
+      : eventStart
+
+  // Clamp end to the end day's boundary end
+  const endDayDate = Temporal.PlainDate.from(eventEnd).toString()
+  const endDayBoundaries = dayBoundariesMap.get(endDayDate)
+  let effectiveEnd = eventEnd
+  if (endDayBoundaries) {
+    if (Temporal.ZonedDateTime.compare(eventEnd, endDayBoundaries.end) > 0) {
+      effectiveEnd = endDayBoundaries.end
+    } else if (
+      Temporal.ZonedDateTime.compare(eventEnd, endDayBoundaries.start) <= 0
+    ) {
+      // End is before the start boundary of its day (e.g. midnight with 08:00 boundary).
+      // Use the previous day's end boundary instead.
+      const prevDayDate = Temporal.PlainDate.from(eventEnd)
+        .subtract({ days: 1 })
+        .toString()
+      const prevDayBoundaries = dayBoundariesMap.get(prevDayDate)
+      if (prevDayBoundaries) effectiveEnd = prevDayBoundaries.end
+    }
+  }
+
+  if (Temporal.ZonedDateTime.compare(effectiveStart, effectiveEnd) >= 0)
+    return null
+
   const left = getXCoordinateInTimeline(
-    eventStart,
+    effectiveStart,
     weekStart,
     $app.config.dayBoundaries.value,
     $app.config.timePointsPerDay,
     daysInWeek
   )
   const width = getEventWidthInTimeline(
-    eventStart,
-    eventEnd,
+    effectiveStart,
+    effectiveEnd,
     $app.config.dayBoundaries.value,
     $app.config.timePointsPerDay,
     daysInWeek
