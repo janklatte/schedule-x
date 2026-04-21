@@ -182,6 +182,7 @@ export default function TimeGridEvent({
     e.stopPropagation()
 
     if (isCopy) return
+    if (calendarEvent._options?.disableResize) return
 
     if ($app.config.plugins.resize) {
       const eventCopy = deepCloneEvent(calendarEvent, $app)

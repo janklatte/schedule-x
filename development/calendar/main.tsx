@@ -94,6 +94,13 @@ const events = [
     end: Temporal.ZonedDateTime.from('2026-04-21T15:30[Europe/Berlin]'),
     resourceId: 'asdf-4321',
   },
+  {
+    id: 3,
+    title: 'Multi-Day Event',
+    start: Temporal.ZonedDateTime.from('2026-04-20T09:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2026-04-22T13:00[Europe/Berlin]'),
+    resourceId: 'asdf-1234',
+  },
   /* ...seededEvents.map(event => ({
     ...event,
     start: dateStringRegex.test(event.start) ? Temporal.PlainDate.from(event.start) : Temporal.ZonedDateTime.from(event.start),

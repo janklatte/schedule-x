@@ -10,6 +10,7 @@ import { toIntegers } from '@schedule-x/shared/src/utils/stateless/time/format-c
 import ResourceWeekDayHeader from './resource-week-day-header'
 import { useRef, useEffect, useCallback } from 'preact/hooks'
 import { filterByRange } from '@schedule-x/calendar/src/utils/stateless/events/filter-by-range'
+import { splitMultiDayTimedEvents } from '../../utils/split-multi-day-timed-events'
 
 export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
   // Set grid height - keep original value for accurate positioning calculations
@@ -18,7 +19,6 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
     `${$app.config.weekOptions.value.gridHeight}px`
   )
 
-  // Minimum width for each resource column (in pixels)
   const MIN_RESOURCE_COLUMN_WIDTH = 150
 
   // Refs for scroll synchronization
@@ -101,10 +101,18 @@ export const ResourceWeekWrapper: PreactViewComponent = ({ $app, id }) => {
       ? calendarEvents.filter($app.calendarEvents.filterPredicate.value)
       : calendarEvents
 
-    const { timeGridEvents } = sortEventsForWeekView(filteredEvents)
+    const { timeGridEvents, dateGridEvents } =
+      sortEventsForWeekView(filteredEvents)
 
     // Position events in the time grid - same as week view
     const weekWithEvents = positionInTimeGrid(timeGridEvents, week, $app)
+
+    // Split multi-day timed events into per-day segments
+    splitMultiDayTimedEvents(
+      dateGridEvents.filter((e) => e._isMultiDayTimed),
+      weekWithEvents,
+      $app
+    )
 
     Object.entries(weekWithEvents).forEach(([date, day]) => {
       const plainDate = Temporal.PlainDate.from(date)
