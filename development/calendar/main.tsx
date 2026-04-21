@@ -352,6 +352,14 @@ calendar._setCustomComponentFn('timeGridEvent', (element, props) => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const event = props.calendarEvent as any
+  const renderDate = props.date as Temporal.ZonedDateTime | undefined
+
+  console.log(
+    'Rendering timeGridEvent',
+    event,
+    'for date',
+    renderDate?.toString()
+  )
 
   // Create custom styled event
   element.innerHTML = `

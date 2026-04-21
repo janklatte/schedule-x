@@ -21,12 +21,14 @@ type props = {
   isCopy: boolean
   calendarEvent: CalendarEventInternal
   setMouseDown?: (value: boolean) => void
+  date?: Temporal.ZonedDateTime
 }
 
 export default function AgendaEvent({
   isCopy,
   calendarEvent,
   setMouseDown,
+  date,
 }: props) {
   const $app = useContext(AppContext)
 
@@ -103,6 +105,7 @@ export default function AgendaEvent({
 
     customComponent(getElementByCCID(customComponentId.current), {
       calendarEvent: calendarEvent._getExternalEvent(),
+      date: date,
     })
 
     return () => {
@@ -110,7 +113,7 @@ export default function AgendaEvent({
         customComponentId.current as string
       )
     }
-  }, [calendarEvent])
+  }, [calendarEvent, date])
 
   const hasCustomContent = calendarEvent._customContent?.timeGrid
 
@@ -215,6 +218,7 @@ export default function AgendaEvent({
           isCopy={true}
           calendarEvent={eventCopy}
           setMouseDown={setMouseDown}
+          date={date}
         />
       )}
     </>

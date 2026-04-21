@@ -62,6 +62,7 @@ export default function WeekAgendaGridDay({
           isCopy={false}
           calendarEvent={event}
           setMouseDown={setMouseDownOnChild}
+          date={date}
         />
       ))}
     </div>
