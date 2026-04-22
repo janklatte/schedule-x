@@ -1,5 +1,8 @@
 import { timePointToPercentage } from '@schedule-x/shared/src/utils/stateless/time/interpolation/time-point-to-grid-percentage'
-import { timePointsFromString } from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
+import {
+  timePointsFromString,
+  addTimePointsToDateTime,
+} from '@schedule-x/shared/src/utils/stateless/time/time-points/string-conversion'
 import { timeFromDateTime } from '@schedule-x/shared/src/utils/stateless/time/format-conversion/string-to-string'
 import { DayBoundariesInternal } from '@schedule-x/shared/src/types/calendar/day-boundaries'
 import { DayBoundariesDateTime } from '@schedule-x/shared/src/types/day-boundaries-date-time'
@@ -126,6 +129,40 @@ export const createDayBoundariesMap = (
     map.set(day.date, { start: dayStartDateTime, end: dayEndDateTime })
   })
   return map
+}
+
+/**
+ * Converts a mouse click on the timeline row into a ZonedDateTime.
+ * The row element's full width represents the visible week.
+ */
+export const getDateTimeFromTimelineClick = (
+  e: MouseEvent,
+  rowEl: HTMLElement,
+  weekStart: Temporal.ZonedDateTime,
+  daysInWeek: number,
+  $app: CalendarAppSingleton
+): Temporal.ZonedDateTime | null => {
+  const rect = rowEl.getBoundingClientRect()
+  const contentX = e.clientX - rect.left
+  const rowWidth = rowEl.clientWidth
+  if (rowWidth === 0) return null
+
+  const totalTP = daysInWeek * $app.config.timePointsPerDay
+  const rawTP = (contentX / rowWidth) * totalTP
+  const dayOffset = Math.min(
+    Math.floor(rawTP / $app.config.timePointsPerDay),
+    daysInWeek - 1
+  )
+  const tpInDay =
+    (rawTP % $app.config.timePointsPerDay) +
+    $app.config.dayBoundaries.value.start
+
+  const dayStart = weekStart
+    .add({ days: dayOffset })
+    .toPlainDate()
+    .toZonedDateTime($app.config.timezone.value)
+
+  return addTimePointsToDateTime(dayStart, tpInDay)
 }
 
 /**

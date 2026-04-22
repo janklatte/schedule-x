@@ -1,10 +1,13 @@
-import { useMemo } from 'preact/hooks'
+import { useMemo, useRef } from 'preact/hooks'
 import { CalendarAppSingleton } from '@schedule-x/shared/src'
 import { DayBoundariesDateTime } from '@schedule-x/shared/src/types/day-boundaries-date-time'
 import { WeekDay } from '@schedule-x/calendar/src/types/week'
 import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
 import ResourceTimelineEvent from './resource-timeline-event'
-import { assignTimelineEventSlots } from './timeline-helpers'
+import {
+  assignTimelineEventSlots,
+  getDateTimeFromTimelineClick,
+} from './timeline-helpers'
 import {
   getXCoordinateInTimeline,
   getEventWidthInTimeline,
@@ -54,10 +57,28 @@ export default function ResourceTimelineRow({
     [weekDays]
   )
 
+  const rowRef = useRef<HTMLDivElement>(null)
+
+  const handleContextMenu = (e: MouseEvent) => {
+    const callback = $app.config.callbacks.onContextMenuDateTime
+    if (!callback) return
+    e.preventDefault()
+    const dateTime = getDateTimeFromTimelineClick(
+      e,
+      rowRef.current as HTMLElement,
+      weekStart,
+      daysInWeek,
+      $app
+    )
+    if (dateTime) callback(dateTime, e, person.id)
+  }
+
   return (
     <div
+      ref={rowRef}
       className="sx__resource-timeline-row"
       data-person-id={person.id}
+      onContextMenu={handleContextMenu}
       style={{
         borderBottom: '1px solid var(--sx-color-outline-variant)',
       }}

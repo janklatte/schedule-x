@@ -3,6 +3,7 @@ import { DayBoundariesDateTime } from '@schedule-x/shared/src/types/day-boundari
 import { DayBoundariesInternal } from '@schedule-x/shared/src/types/calendar/day-boundaries'
 import { useEffect, useRef } from 'preact/hooks'
 import { invokeOnEventClickCallback } from '@schedule-x/calendar/src/utils/stateless/events/invoke-on-event-click-callback'
+import { invokeOnEventContextMenuCallback } from '@schedule-x/calendar/src/utils/stateless/events/invoke-on-event-context-menu-callback'
 import { getElementByCCID } from '@schedule-x/calendar/src/utils/stateless/dom/getters'
 import { randomStringId } from '@schedule-x/shared/src/utils/stateless/strings/random'
 import { CalendarEventInternal } from '@schedule-x/shared/src/interfaces/calendar/calendar-event.interface'
@@ -131,6 +132,13 @@ export default function ResourceTimelineEvent({
     invokeOnEventClickCallback($app, event, e)
   }
 
+  const handleOnContextMenu = (e: MouseEvent) => {
+    if (isCopy) return
+    e.stopPropagation()
+    e.preventDefault()
+    invokeOnEventContextMenuCallback($app, event, e)
+  }
+
   const dragStartTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const cancelDragTimeout = () => {
@@ -199,6 +207,7 @@ export default function ResourceTimelineEvent({
     <div
       data-event-id={event.id}
       onClick={handleOnClick}
+      onContextMenu={handleOnContextMenu}
       onMouseDown={handlePointerDown}
       onTouchStart={handlePointerDown}
       style={{
