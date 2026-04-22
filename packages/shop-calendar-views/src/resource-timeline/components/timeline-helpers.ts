@@ -156,7 +156,13 @@ export const clampEventToRange = (
   const clampedEnd =
     Temporal.ZonedDateTime.compare(eventEnd, rangeEnd) > 0 ? rangeEnd : eventEnd
 
-  return { ...event, start: clampedStart, end: clampedEnd }
+  const clone = Object.assign(
+    Object.create(Object.getPrototypeOf(event) as object),
+    event
+  ) as CalendarEventInternal
+  clone.start = clampedStart
+  clone.end = clampedEnd
+  return clone
 }
 
 /**

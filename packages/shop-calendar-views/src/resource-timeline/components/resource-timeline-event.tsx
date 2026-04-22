@@ -198,7 +198,6 @@ export default function ResourceTimelineEvent({
   return (
     <div
       data-event-id={event.id}
-      data-ccid={customComponentId.current}
       onClick={handleOnClick}
       onMouseDown={handlePointerDown}
       onTouchStart={handlePointerDown}
@@ -234,7 +233,12 @@ export default function ResourceTimelineEvent({
       tabIndex={isCopy ? -1 : 0}
       role="button"
     >
-      {!customComponent && event.title}
+      <div
+        data-ccid={customComponentId.current}
+        style={{ width: '100%', height: '100%', overflow: 'hidden' }}
+      >
+        {!customComponent && event.title}
+      </div>
 
       {!isCopy &&
         $app.config.plugins.resize &&
