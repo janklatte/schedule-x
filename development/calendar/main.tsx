@@ -179,10 +179,6 @@ const calendar = createCalendar({
   translations: mergeLocales(translations, timezoneSelectTranslations),
 
   showWeekNumbers: true,
-  /* dayBoundaries: {
-    start: '20:00',
-    end: '06:00'
-  }, */
   firstDayOfWeek: 1,
   views: [
     createViewMonthGrid(),
@@ -330,7 +326,7 @@ const calendar = createCalendar({
   maxDate: Temporal.PlainDate.from('2026-12-31'),
   dayBoundaries: {
     start: '08:00',
-    end: '19:00',
+    end: '17:00',
   },
   weekOptions: {
     gridStep: 60,
@@ -454,8 +450,8 @@ calendar.render(calendarElement)
 eventsServicePlugin.setBackgroundEvents([
   {
     title: 'Out of office',
-    start: Temporal.ZonedDateTime.from('2026-04-20T16:00:00[Europe/Berlin]'),
-    end: Temporal.ZonedDateTime.from('2026-04-21T00:00:00[Europe/Berlin]'),
+    start: Temporal.ZonedDateTime.from('2026-04-26T00:00:00[Europe/Berlin]'),
+    end: Temporal.ZonedDateTime.from('2026-04-27T00:00:00[Europe/Berlin]'),
     style: {
       // create tilted 5px thick gray lines
       backgroundImage:

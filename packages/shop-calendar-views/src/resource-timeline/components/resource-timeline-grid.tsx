@@ -123,7 +123,7 @@ export default function ResourceTimelineGrid({
               display: 'flex',
               flexDirection: 'column',
               width: mode === 'day' ? '100%' : `${weekWidth}px`,
-              minWidth: `${weekWidth}px`,
+              minWidth: mode === 'day' ? undefined : `${weekWidth}px`,
             }}
           >
             {people.length > 0 && weekStart

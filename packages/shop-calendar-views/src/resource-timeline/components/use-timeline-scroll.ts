@@ -1,13 +1,21 @@
 import { useRef, useEffect, useCallback, useState } from 'preact/hooks'
 import { CalendarAppSingleton } from '@schedule-x/shared/src'
 
-export const useTimelineScroll = ($app: CalendarAppSingleton) => {
+export const useTimelineScroll = (
+  $app: CalendarAppSingleton,
+  mode: 'time' | 'day' = 'time'
+) => {
   const headerScrollRef = useRef<HTMLDivElement>(null)
   const gridScrollRef = useRef<HTMLDivElement>(null)
   const resourceNamesRef = useRef<HTMLDivElement>(null)
   const [gridScrollbarWidth, setGridScrollbarWidth] = useState(0)
 
   const scrollToToday = useCallback(() => {
+    // In day mode all days are always visible (no horizontal overflow),
+    // so there is nothing to scroll to horizontally. Skipping the scroll
+    // prevents a coordinate-system mismatch from desyncing the header and grid.
+    if (mode === 'day') return
+
     const day = $app.datePickerState.selectedDate.value
     const dayElement = headerScrollRef.current?.querySelector(
       `.sx__resource-timeline-day-header[data-date="${day}"]`
@@ -25,7 +33,7 @@ export const useTimelineScroll = ($app: CalendarAppSingleton) => {
         behavior: 'auto',
       })
     }
-  }, [])
+  }, [mode])
 
   // Synchronize horizontal scroll between header and grid
   useEffect(() => {

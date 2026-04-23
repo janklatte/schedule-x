@@ -25,7 +25,7 @@ function ResourceTimelineCore({ $app, id, mode }: CoreProps) {
     gridScrollRef,
     resourceNamesRef,
     gridScrollbarWidth,
-  } = useTimelineScroll($app)
+  } = useTimelineScroll($app, mode)
 
   const { people, week, weekStart } = useResourceTimelineData($app)
   const weekDays = Object.values(week)
@@ -54,7 +54,7 @@ function ResourceTimelineCore({ $app, id, mode }: CoreProps) {
             height: ${RESOURCE_ROW_HEIGHT}px;
             min-height: ${RESOURCE_ROW_HEIGHT}px;
             width: ${mode === 'day' ? '100%' : `${weekWidth}px`};
-            min-width: ${weekWidth}px;
+            ${mode === 'day' ? '' : `min-width: ${weekWidth}px;`}
           }
         `}</style>
         <div

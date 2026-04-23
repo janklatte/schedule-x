@@ -203,6 +203,12 @@ export default function ResourceTimelineRow({
                 const prevDayBoundaries = dayBoundariesMap.get(prevDayDate)
                 if (prevDayBoundaries) effectiveBgEnd = prevDayBoundaries.end
               }
+            } else {
+              // End date is outside the visible week range – clamp to the last visible day's end boundary.
+              const lastDayBoundaries = dayBoundariesMap.get(
+                weekDays[weekDays.length - 1].date
+              )
+              if (lastDayBoundaries) effectiveBgEnd = lastDayBoundaries.end
             }
 
             if (Temporal.ZonedDateTime.compare(eventStart, effectiveBgEnd) >= 0)

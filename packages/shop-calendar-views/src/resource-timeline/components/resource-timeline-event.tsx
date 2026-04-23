@@ -78,6 +78,13 @@ export default function ResourceTimelineEvent({
       const prevDayBoundaries = dayBoundariesMap.get(prevDayDate)
       if (prevDayBoundaries) effectiveEnd = prevDayBoundaries.end
     }
+  } else {
+    // End date is outside the visible week range – clamp to the last visible day's end boundary.
+    const lastDayDate = Temporal.PlainDate.from(weekStart)
+      .add({ days: daysInWeek - 1 })
+      .toString()
+    const lastDayBoundaries = dayBoundariesMap.get(lastDayDate)
+    if (lastDayBoundaries) effectiveEnd = lastDayBoundaries.end
   }
 
   if (Temporal.ZonedDateTime.compare(effectiveStart, effectiveEnd) >= 0)
