@@ -1,6 +1,6 @@
 {
   "name": "@schedule-x/shop-calendar-views",
-  "version": "1.0.0",
+  "version": "1.0.0-mm.1",
   "description": "Schedule-X custom calendar views for shop calendar",
   "author": {
     "name": "Jan Kleine-Klatte",
@@ -27,8 +27,8 @@
   },
   "peerDependencies": {
     "@preact/signals": "^2.0.2",
-    "@schedule-x/calendar": "^3.0.0",
-    "@schedule-x/shared": "^3.0.0",
+    "@schedule-x/calendar": "^3.2.0-mm.1",
+    "@schedule-x/shared": "^3.2.0-mm.1",
     "preact": "^10.19.2",
     "temporal-polyfill": "0.3.0"
   },
